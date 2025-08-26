@@ -1,0 +1,42 @@
+<div class="board-container">
+  <div class="board-header">
+    <h1>Task Board Manager</h1>
+    <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
+  </div>
+  
+  <div class="board">
+    <app-column 
+      title="TODO" 
+      status="todo"
+      [tasks]="getTasksByStatus('todo')"
+      (taskEdit)="onEditTask($event)"
+      (taskDelete)="onTaskDeleted()"
+      (taskMove)="onTaskMoved($event.task, $event.status)">
+    </app-column>
+    
+    <app-column 
+      title="IN PROGRESS" 
+      status="in-progress"
+      [tasks]="getTasksByStatus('in-progress')"
+      (taskEdit)="onEditTask($event)"
+      (taskDelete)="onTaskDeleted()"
+      (taskMove)="onTaskMoved($event.task, $event.status)">
+    </app-column>
+    
+    <app-column 
+      title="DONE" 
+      status="done"
+      [tasks]="getTasksByStatus('done')"
+      (taskEdit)="onEditTask($event)"
+      (taskDelete)="onTaskDeleted()"
+      (taskMove)="onTaskMoved($event.task, $event.status)">
+    </app-column>
+  </div>
+  
+  <app-task-form 
+    *ngIf="showTaskForm"
+    [task]="editingTask"
+    (taskSaved)="onTaskSaved()"
+    (formClosed)="onTaskFormClose()">
+  </app-task-form>
+</div>

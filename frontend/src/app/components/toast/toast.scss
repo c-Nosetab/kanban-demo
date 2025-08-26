@@ -1,0 +1,141 @@
+:root {
+  --success-color: #bbec88;
+  --success-outline: #3a6a09;
+  --success-dark-bg: #21261c;
+  --success-dark-color: #3a6a09;
+
+  --info-color: #64f0fc;
+  --info-outline: #005965;
+  --info-dark-bg: #1b2425;
+  --info-dark-color: #005965;
+
+  --warn-color: #ffd75c;
+  --warn-outline: #c2731c;
+  --warn-dark-bg: #2e271e;
+  --warn-dark-color: #c2731c;
+
+  --error-color: #ff9d6f;
+  --error-outline: #af2f0d;
+  --error-dark-bg: #2d201c;
+  --error-dark-color: #af2f0d;
+}
+
+.toast {
+  position: fixed;
+  max-width: 322px;
+  background-color: var(--success-color);
+  border-radius: 4px;
+  box-shadow: 0px 4px 14px 0px rgba(0, 0, 0, 0.25);
+  padding: 16px;
+  text-align: left;
+  gap: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  left: 24px;
+  bottom: 24px;
+  z-index: 9999;
+
+  span {
+    max-width: 220px;
+    /* // max-width: 400px; */
+  }
+
+  span.full-text {
+    display: none;
+  }
+
+  &.dense {
+    padding: 8px 16px;
+  }
+
+  &.tall {
+    padding: 28px 16px;
+  }
+
+  &.dismiss {
+    /* // animation: toastyDismissible 1s forwards; */
+  }
+
+  &.outline {
+    background: white !important;
+  }
+
+  &.success {
+    &.outline {
+      border: 1px solid var(--success-outline);
+      color: var(--success-outline);
+    }
+
+    &.dark {
+      border: none;
+      background: var(--success-dark-bg);
+      color: var(--success-dark-color);
+    }
+  }
+
+  &.info {
+    background: var(--info-color);
+
+    &.outline {
+      border: 1px solid var(--info-outline);
+      color: var(--info-outline);
+    }
+
+    &.dark {
+      border: none;
+      background: var(--info-dark-bg);
+      color: var(--info-dark-color);
+    }
+  }
+
+  &.warn {
+    background: var(--warn-color);
+
+    &.outline {
+      border: 1px solid var(--warn-outline);
+      color: var(--warn-outline);
+    }
+
+    &.dark {
+      border: none;
+      background: var(--warn-dark-bg);
+      color: var(--warn-dark-color);
+    }
+  }
+
+  &.error {
+      background: var(--error-color);
+
+    &.outline {
+      border: 1px solid var(--error-outline);
+      color: var(--error-outline);
+    }
+
+    &.dark {
+      border: none;
+      background: var(--error-dark-bg);
+      color: var(--error-dark-color);
+    }
+  }
+}
+
+.toast {
+  cursor: pointer;
+
+  &:hover {
+    .close {
+      color: lighten(black, 40%);
+    }
+
+    span {
+      display: none;
+
+      &.full-text {
+        display: block;
+      }
+    }
+  }
+}
+

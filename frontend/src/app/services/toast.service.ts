@@ -1,0 +1,58 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+export interface SetToastObject {
+  text: string;
+  type: 'success' | 'error' | 'warn' | 'info';
+  icon?: boolean | 'check' | 'error' | 'warning' | 'info';
+  dismissible?: boolean;
+  outline?: boolean;
+  dark?: boolean;
+  style?: 'default' | 'dense' | 'tall';
+
+  // dev use only
+  _?: {
+    displayText?: string;
+    id?: string;
+  }
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ToastService {
+  toastIconTypes: {
+    success: 'check',
+    error: 'error',
+    warn: 'warning',
+    info: 'info',
+  } = {
+    success: 'check',
+    error: 'error',
+    warn: 'warning',
+    info: 'info',
+  }
+
+  private _toast = new BehaviorSubject<SetToastObject | undefined>(undefined);
+  public readonly newToast = this._toast.asObservable();
+
+  addToast = (toast: SetToastObject) => {
+    if (toast.type === undefined) toast.type = 'success';
+    if (toast.icon === undefined) toast.icon = true;
+    if (toast.dismissible === undefined) toast.dismissible = false;
+    if (toast.outline === undefined) toast.outline = false;
+    if (toast.dark === undefined) toast.dark = false;
+    if (toast.style === undefined) toast.style = 'default';
+    this.setIcon(toast);
+
+    this._toast.next(toast)
+  }
+
+  setIcon = (toast: SetToastObject) => {
+    if (!toast.icon) return;
+
+    if (typeof toast.icon === 'boolean' && this.toastIconTypes?.[toast.type] !== undefined) {
+      toast.icon = this.toastIconTypes[toast.type];
+    }
+  }
+}
