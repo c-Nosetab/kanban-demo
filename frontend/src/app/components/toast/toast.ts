@@ -14,6 +14,8 @@ import { MatIconModule } from '@angular/material/icon';
 export class Toast implements OnInit, OnDestroy {
   toasts: SetToastObject[] = [];
   autoRemoveRunning = false;
+  toastAdded = false;
+  prevTimeline: gsap.core.Timeline | null = null;
 
   left = 24;
   bottom = 24;
@@ -33,7 +35,7 @@ export class Toast implements OnInit, OnDestroy {
       .subscribe((toast: SetToastObject | undefined) => {
         if (toast === undefined) return
 
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).substring(2, 11);
         toast._ = {};
         toast._.id = id;
         toast._.displayText = toast.text.length > 30 ? `${toast.text.slice(0, 30)}...` : toast.text;
@@ -49,13 +51,13 @@ export class Toast implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  animateToastArr(
-    forceAnimation = false, setDurToZero = false, addedElement?: Element, noDelay = false,
-  ) {
-    console.log("HERE")
-    if ((this.removalRunning) && !forceAnimation) return;
-    // set all active tweens to completed state
-    gsap.killTweensOf('.toast');
+  animateToastArr(forceAnimation = false, noDelay = false) {
+    if (this.removalRunning && !forceAnimation) return;
+
+    if (this.prevTimeline) {
+      this.prevTimeline.progress(1);
+      this.prevTimeline.kill();
+    }
 
     let toastEls = Array.from(document.querySelectorAll('.toast'));
 
@@ -63,70 +65,78 @@ export class Toast implements OnInit, OnDestroy {
       const id = el.getAttribute('id');
       const inArray = this.toasts.some((toast) => toast?._?.id === id);
       const wasRemoved = el.classList.contains('removing');
-      return inArray && !wasRemoved;
+      return inArray && !wasRemoved; // Exclude removing toasts
     });
 
     if (toastEls.length === 0) return;
 
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        this.scanForAutoDismiss();
+      }
+    });
 
-    const newEl = toastEls[0] as HTMLDivElement;
-    const hasAppeared = newEl.classList.contains('has-appeared');
+    const newEl = toastEls.find(el => !el.classList.contains('has-appeared')) as HTMLDivElement;
 
-    if (!hasAppeared) {
-      const otherEls = toastEls.slice(1);
+    // Set initial position for new toast only if there is one
+    if (newEl) {
+      const otherEls = toastEls.filter(el => el !== newEl);
       const sum = otherEls.reduce((acc, el) => acc + el.clientHeight + this.gap, 0) * -1;
 
-      gsap.set(newEl, {
+      timeline.set(newEl, {
         x: -newEl.clientWidth - 24,
         y: sum,
-      })
+      }, 0);
     }
 
     let curHeightDelta = 0;
 
-    // Calculate positions for all toasts, but only animate the new one
     toastEls.forEach((toastEl, i) => {
       const targetY = -curHeightDelta;
-      const toastItem = this.toasts.find((toast) => toast?._?.id === toastEl.getAttribute('id'));
+      const delay = noDelay ? 0 : 0.05 * i;
 
-      if (toastEl === newEl && !hasAppeared) {
-
-        // New toast - animate it in from the left
-        gsap.to(toastEl, {
-          x: 0,
-          y: targetY === -0 ? 0 : targetY,
-          duration: 1,
-          delay: 0,
-          ease: 'power1.inOut',
-        });
-      } else if (!toastEl.classList.contains('has-appeared')) {
-        // Position other toasts that haven't been positioned yet
-        gsap.set(toastEl, {
+      if (toastEl === newEl) {
+        // New toast - animate it in
+        timeline.to(toastEl, {
           x: 0,
           y: targetY,
-        });
-        toastEl.classList.add('has-appeared');
-      } else {
-        gsap.to(toastEl, {
-          x: 0,
-          y: targetY === -0 ? 0 : targetY,
-          duration: this.duration,
-          delay: noDelay ? 0 : 0.05 * i,
+          duration: 1,
           ease: 'power1.inOut',
-        });
+          onComplete: () => {
+            toastEl.classList.add('has-appeared');
+          }
+        }, delay);
+      } else if (!toastEl.classList.contains('has-appeared')) {
+        // Position other toasts instantly
+        timeline.set(toastEl, {
+          x: 0,
+          y: targetY,
+          onComplete: () => {
+            toastEl.classList.add('has-appeared');
+          }
+        }, delay);
+      } else {
+        // Existing toasts - only reposition if needed
+        const currentY = gsap.getProperty(toastEl, 'y');
+        if (currentY !== targetY) {
+          timeline.to(toastEl, {
+            x: 0,
+            y: targetY,
+            duration: this.duration,
+            ease: 'power1.inOut',
+          }, delay);
+        }
       }
       curHeightDelta += toastEl.clientHeight + this.gap;
     });
-    newEl.classList.add('has-appeared')
 
-    this.scanForAutoDismiss();
+    this.prevTimeline = timeline;
   }
 
   dismissToast(toast: Element, bottomToast = false) {
     toast.classList.add('removing');
 
     return new Promise((resolve) => {
-      console.log('dismissToast');
       this.removalRunning = true;
 
       if (bottomToast) {
@@ -144,7 +154,6 @@ export class Toast implements OnInit, OnDestroy {
         });
       }
 
-      this.animateToastArr(false, false, undefined, true);
       setTimeout(() => {
         this.autoRemoveRunning = false;
         resolve(true);
@@ -161,16 +170,21 @@ export class Toast implements OnInit, OnDestroy {
     if (!target) return;
 
     let lastToast = false;
-
     const targetY = gsap.getProperty(target, 'y');
     if (toastEls.length === 1 || targetY === 0) {
       lastToast = true;
     }
 
+    // Remove from array and dismiss toast
+    this.toasts = this.toasts.filter((t) => t?._?.id !== toast?._?.id);
+
     await this.dismissToast(target, lastToast);
 
-    const filteredToasts = this.toasts.filter((t) => t?._?.id !== toast?._?.id);
-    this.toasts = filteredToasts;
+    // After dismiss is complete, animate remaining toasts
+    if (this.toasts.length > 0) {
+      this.animateToastArr(true, true);
+    }
+
     this.removalRunning = false;
   }
 
@@ -219,9 +233,7 @@ export class Toast implements OnInit, OnDestroy {
   }
 
   @ViewChild('elementToCheck') set elementToCheck(elementToCheck: any) {
-    this.animateToastArr(
-      false, false, elementToCheck,
-    );
+    this.animateToastArr();
   }
 
 
