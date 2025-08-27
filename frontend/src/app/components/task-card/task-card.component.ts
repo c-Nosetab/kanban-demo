@@ -1,27 +1,33 @@
-import { Component, Input, Output, EventEmitter, OnInit, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef, ViewContainerRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { ToastService } from '../../services/toast.service';
 import { TaskService } from '../../services/task.service';
+import { Modal } from '../modal/modal';
 
 @Component({
   selector: 'app-task-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Modal],
   templateUrl: './task-card.component.html',
   styleUrls: ['./task-card.component.scss']
 })
 export class TaskCardComponent implements OnInit {
   @Input() task!: Task;
   @Input() isNew: boolean = false;
+  @Input() isDeleteModalOpen: boolean = false;
+
+  deleteIsLoading: boolean = false;
+  deleteModalInput: string = '';
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
 
+  @ViewChild(Modal) modalRef!: Modal;
+
   constructor(
-    private toastService: ToastService,
     private taskService: TaskService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
   ) { }
 
   ngOnInit() {
@@ -30,23 +36,48 @@ export class TaskCardComponent implements OnInit {
     }
   }
 
+  onClick(): void {
+    console.log('onClick');
+  }
+
   onEdit(): void {
     this.taskEdit.emit(this.task);
   }
 
+  openDeleteModal(): void {
+    this.isDeleteModalOpen = true;
+  }
+
+  onDeleteModalInputChange(event: Event): void {
+    this.deleteModalInput = (event.target as HTMLInputElement).value;
+  }
+
+  onDeleteModalConfirm(): void {
+    this.onDelete();
+  }
+
+  onDeleteModalCancel(): void {
+    console.log('onDeleteModalCancel');
+    this.isDeleteModalOpen = false;
+  }
+
+
   onDelete(): void {
-    console.log('onDelete');
-    // TODO: Implement delete confirmation
-    const response = window.confirm('Delete task?');
+    this.deleteIsLoading = true;
 
-    if (response) {
-      this.taskService.deleteTask(this.task.id!).subscribe({
-        next: () => {
+
+    this.taskService.deleteTask(this.task.id!).subscribe({
+      next: () => {
+        this.deleteIsLoading = false;
+        this.modalRef.closeAfterSuccess();
+        setTimeout(() => {
           this.taskDelete.emit();
-        }
-      });
-    }
-
+        }, 290);
+      },
+      error: () => {
+        this.deleteIsLoading = false;
+      }
+    });
   }
 
   getPriorityClass(): string {

@@ -3,7 +3,14 @@
     <h4 class="task-title" [class.done]="isDone()">{{ task.title }}</h4>
     <div class="task-actions">
       <button class="edit-btn" (click)="onEdit()" title="Edit task">✏️</button>
-      <button class="delete-btn" (click)="onDelete()" title="Delete task">🗑️</button>
+      <button
+        class="delete-btn"
+        [class.warning]="isDeleteModalOpen"
+        (click)="openDeleteModal()"
+        title="Delete task"
+      >
+        🗑️
+      </button>
     </div>
   </div>
 
@@ -26,3 +33,37 @@
 
   <div class="drag-handle" title="Drag to move">⋮⋮</div>
 </div>
+
+@if (isDeleteModalOpen) {
+<app-modal
+  #deleteTaskModal
+  id="delete-task-modal"
+  [isOpen]="true"
+  [isWarning]="true"
+  [isLoading]="deleteIsLoading"
+  [modalTitle]="'Delete Task'"
+  [confirmText]="'Delete'"
+  [cancelText]="'Cancel'"
+  [fitToContent]="true"
+  [confirmDisabled]="deleteModalInput.toLowerCase() !== 'delete'"
+  (onConfirm)="onDeleteModalConfirm()"
+  (onCancel)="onDeleteModalCancel()"
+  [autoCloseOnConfirm]="true"
+>
+  <div class="delete-modal-text">
+    <h3>Are you sure you want to delete this task?</h3>
+    <h4>Confirm by typing "delete" in the input below.</h4>
+  </div>
+
+  <div class="delete-modal-input-container">
+    <input
+      id="delete-modal-input"
+      type="text"
+      class="delete-modal-input"
+      [value]="deleteModalInput"
+      placeholder="Type 'delete' to confirm"
+      (input)="onDeleteModalInputChange($event)"
+    />
+  </div>
+</app-modal>
+}

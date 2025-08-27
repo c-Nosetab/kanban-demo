@@ -20,9 +20,6 @@
         },
         "@schematics/angular:resolver": {
           "style": "scss"
-        },
-        "@schematics/angular:service": {
-          "style": "scss"
         }
       },
       "root": "",

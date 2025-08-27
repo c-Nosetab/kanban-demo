@@ -1,10 +1,10 @@
 <div class="modal-backdrop" [class.closing]="isClosing" (click)="onBackdropClick($event)">
   <div class="modal-content" [class.closing]="isClosing" (click)="onModalContentClick($event)">
-    <div class="modal-header">
+    <div class="modal-header" [class.warning]="isWarning">
       <h2>{{ modalTitle }}</h2>
-      <button class="close-btn" (click)="onCancel()">✕</button>
+      <button class="close-btn" (click)="handleCancel()">✕</button>
     </div>
-    <div class="modal-body" [style]="{ minHeight: contentMinHeight }">
+    <div class="modal-body" [class.fit-to-content]="fitToContent">
       <div class="content-container" [class.loading]="isLoading">
         <div class="actual-content" [class.hidden]="isLoading">
           <ng-content></ng-content>
@@ -18,8 +18,15 @@
     </div>
     <div class="modal-footer">
       <div class="modal-actions">
-        <button class="cancel-btn btn" (click)="onCancel()">{{ cancelText }}</button>
-        <button class="confirm-btn btn" (click)="onConfirm()" [disabled]="confirmDisabled">
+        <button class="cancel-btn btn" [class.warning]="isWarning" (click)="handleCancel()">
+          {{ cancelText }}
+        </button>
+        <button
+          class="confirm-btn btn"
+          [class.warning]="isWarning"
+          (click)="handleConfirm()"
+          [disabled]="confirmDisabled"
+        >
           {{ confirmText }}
         </button>
       </div>

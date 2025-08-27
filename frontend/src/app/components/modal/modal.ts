@@ -9,17 +9,18 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
 })
 export class Modal implements OnDestroy, OnChanges {
   @Input() isOpen: boolean = false;
+  @Input() isWarning: boolean = false;
   @Input() modalTitle: string = '';
   @Input() isLoading: boolean = false;
   @Input() confirmDisabled: boolean = false;
   @Input() confirmText: string = 'Confirm';
   @Input() cancelText: string = 'Cancel';
-  @Input() contentMinHeight: string = '200px';
   @Input() autoCloseOnConfirm: boolean = false;
+  @Input() fitToContent: boolean = false;
 
-  @Output() cancel = new EventEmitter<void>();
-  @Output() confirm = new EventEmitter<void>();
-  @Output() closeModal = new EventEmitter<void>();
+  @Output() onCancel = new EventEmitter<void>();
+  @Output() onConfirm = new EventEmitter<void>();
+  @Output() onCloseModal = new EventEmitter<void>();
 
   isClosing = false;
   private closingTimeout: any = null;
@@ -36,12 +37,12 @@ export class Modal implements OnDestroy, OnChanges {
     return this.startClosingAnimation();
   }
 
-  onCancel() {
+  handleCancel() {
     this.startClosingAnimation();
   }
 
-  onConfirm() {
-    this.confirm.emit();
+  handleConfirm() {
+    this.onConfirm.emit();
     if (this.autoCloseOnConfirm) {
       this.startClosingAnimation();
     }
@@ -62,7 +63,7 @@ export class Modal implements OnDestroy, OnChanges {
 
     // Wait for animation to complete before emitting cancel
     this.closingTimeout = setTimeout(() => {
-      this.cancel.emit();
+      this.onCancel.emit();
       this.isClosing = false;
     }, 300); // Match the CSS animation duration
   }
