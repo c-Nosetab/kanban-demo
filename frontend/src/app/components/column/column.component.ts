@@ -17,7 +17,7 @@ export class ColumnComponent {
   @Input() tasks: Task[] = [];
 
   @Output() taskEdit = new EventEmitter<Task>();
-  @Output() taskDelete = new EventEmitter<void>();
+  @Output() taskDelete = new EventEmitter<Task>();
   @Output() taskMove = new EventEmitter<{task: Task, status: string}>();
 
   onTaskEdit(task: Task): void {
@@ -29,6 +29,7 @@ export class ColumnComponent {
   }
 
   onTaskDrop(event: any): void {
+    console.log(event);
     // TODO: Implement drag and drop logic
   }
 

@@ -1,0 +1,76 @@
+import { Component, EventEmitter, Input, Output, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { LoadingSpinner } from '../loading-spinner/loading-spinner';
+
+@Component({
+  selector: 'app-modal',
+  imports: [LoadingSpinner],
+  templateUrl: './modal.html',
+  styleUrl: './modal.scss'
+})
+export class Modal implements OnDestroy, OnChanges {
+  @Input() isOpen: boolean = false;
+  @Input() modalTitle: string = '';
+  @Input() isLoading: boolean = false;
+  @Input() confirmDisabled: boolean = false;
+  @Input() confirmText: string = 'Confirm';
+  @Input() cancelText: string = 'Cancel';
+  @Input() contentMinHeight: string = '200px';
+  @Input() autoCloseOnConfirm: boolean = false;
+
+  @Output() cancel = new EventEmitter<void>();
+  @Output() confirm = new EventEmitter<void>();
+  @Output() closeModal = new EventEmitter<void>();
+
+  isClosing = false;
+  private closingTimeout: any = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && !changes['isOpen'].currentValue && !this.isClosing) {
+      // Modal is being closed externally (e.g., from parent component)
+      this.startClosingAnimation();
+    }
+  }
+
+  // Method to be called by parent component after successful action
+  closeAfterSuccess() {
+    return this.startClosingAnimation();
+  }
+
+  onCancel() {
+    this.startClosingAnimation();
+  }
+
+  onConfirm() {
+    this.confirm.emit();
+    if (this.autoCloseOnConfirm) {
+      this.startClosingAnimation();
+    }
+  }
+
+  onModalContentClick(event: Event): void {
+    event.stopPropagation();
+  }
+
+  onBackdropClick(event: Event): void {
+    this.startClosingAnimation();
+  }
+
+  private startClosingAnimation() {
+    if (this.isClosing) return;
+
+    this.isClosing = true;
+
+    // Wait for animation to complete before emitting cancel
+    this.closingTimeout = setTimeout(() => {
+      this.cancel.emit();
+      this.isClosing = false;
+    }, 300); // Match the CSS animation duration
+  }
+
+  ngOnDestroy() {
+    if (this.closingTimeout) {
+      clearTimeout(this.closingTimeout);
+    }
+  }
+
+}

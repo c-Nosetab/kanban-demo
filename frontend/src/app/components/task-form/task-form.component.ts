@@ -1,13 +1,15 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
+import { Modal } from '../modal/modal';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Modal],
   templateUrl: './task-form.component.html',
   styleUrls: ['./task-form.component.scss']
 })
@@ -17,6 +19,11 @@ export class TaskFormComponent implements OnInit {
   @Output() taskSaved = new EventEmitter<void>();
   @Output() formClosed = new EventEmitter<void>();
 
+  isOpen = true;
+  confirmText = 'Save';
+  cancelText = 'Cancel';
+  isLoading = true;
+
   formData: Task = {
     title: '',
     description: '',
@@ -25,10 +32,11 @@ export class TaskFormComponent implements OnInit {
     dueDate: ''
   };
 
-  isLoading = false;
   error = '';
 
-  constructor(private taskService: TaskService) {}
+  constructor(private taskService: TaskService, private toastService: ToastService) {}
+
+  @ViewChild(Modal) modalRef!: Modal;
 
   ngOnInit(): void {
     if (this.task) {
@@ -37,6 +45,14 @@ export class TaskFormComponent implements OnInit {
         this.formData.dueDate = this.formatDateForInput(this.formData.dueDate);
       }
     }
+
+    setTimeout(() => {
+      this.isLoading = false;
+    }, this.task ? 1000 : 0);
+  }
+
+  onConfirm(): void {
+    this.onSubmit();
   }
 
   onSubmit(): void {
@@ -48,21 +64,43 @@ export class TaskFormComponent implements OnInit {
     this.isLoading = true;
     this.error = '';
 
-    // TODO: Implement save logic
-    setTimeout(() => {
-      this.isLoading = false;
-      this.taskSaved.emit();
-    }, 500);
+    if (this.isEditMode) {
+      // Update existing task
+      this.taskService.updateTask(this.task!.id!, this.formData).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.modalRef.closeAfterSuccess();
+          // Delay the emit until after animation completes
+          setTimeout(() => {
+            this.taskSaved.emit();
+          }, 300); // Match modal animation duration
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error updating task:', error);
+        }
+      });
+    } else {
+      // Create new task
+      this.taskService.createTask(this.formData).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.modalRef.closeAfterSuccess();
+          // Delay the emit until after animation completes
+          setTimeout(() => {
+            this.taskSaved.emit();
+          }, 300); // Match modal animation duration
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error creating task:', error);
+        }
+      });
+    }
   }
 
   onCancel(): void {
     this.formClosed.emit();
-  }
-
-  onBackdropClick(event: Event): void {
-    if (event.target === event.currentTarget) {
-      this.onCancel();
-    }
   }
 
   private formatDateForInput(dateString: string): string {

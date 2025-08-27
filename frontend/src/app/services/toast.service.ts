@@ -8,6 +8,7 @@ export interface SetToastObject {
   outline?: boolean;
   dark?: boolean;
   style?: 'default' | 'dense' | 'tall';
+  delayAdd?: boolean;
 
   // dev use only
   _?: {
@@ -43,7 +44,9 @@ export class ToastService {
     if (toast.style === undefined) toast.style = 'default';
     this.setIcon(toast);
 
-    this._toast.next(toast)
+    setTimeout(() => {
+      this._toast.next(toast)
+    }, toast.delayAdd ? 50 : 0);
   }
 
   setIcon = (toast: SetToastObject) => {

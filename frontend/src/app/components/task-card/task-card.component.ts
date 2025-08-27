@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
+import { ToastService } from '../../services/toast.service';
+import { TaskService } from '../../services/task.service';
 
 @Component({
   selector: 'app-task-card',
@@ -15,13 +17,28 @@ export class TaskCardComponent {
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
 
+  constructor(
+    private toastService: ToastService,
+    private taskService: TaskService
+  ) { }
+
   onEdit(): void {
     this.taskEdit.emit(this.task);
   }
 
   onDelete(): void {
+    console.log('onDelete');
     // TODO: Implement delete confirmation
-    this.taskDelete.emit();
+    const response = window.confirm('Delete task?');
+
+    if (response) {
+      this.taskService.deleteTask(this.task.id!).subscribe({
+        next: () => {
+          this.taskDelete.emit();
+        }
+      });
+    }
+
   }
 
   getPriorityClass(): string {

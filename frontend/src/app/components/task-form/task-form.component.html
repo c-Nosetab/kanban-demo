@@ -1,85 +1,73 @@
-<div class="modal-backdrop" (click)="onBackdropClick($event)">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>{{ modalTitle }}</h2>
-      <button class="close-btn" (click)="onCancel()">✕</button>
+<app-modal
+  [isOpen]="isOpen"
+  [isLoading]="isLoading"
+  [modalTitle]="modalTitle"
+  [confirmText]="confirmText"
+  [cancelText]="cancelText"
+  [autoCloseOnConfirm]="false"
+  [confirmDisabled]="isLoading || !formData.title.trim()"
+  (cancel)="onCancel()"
+  (confirm)="onConfirm()"
+>
+  <form (ngSubmit)="onSubmit()" #taskForm="ngForm" class="task-form">
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        [(ngModel)]="formData.title"
+        maxlength="100"
+        required
+        class="form-control"
+        [class.error]="error && !formData.title.trim()"
+      />
     </div>
-    
-    <form (ngSubmit)="onSubmit()" #taskForm="ngForm">
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        name="description"
+        [(ngModel)]="formData.description"
+        maxlength="500"
+        rows="3"
+        class="form-control"
+      >
+      </textarea>
+    </div>
+
+    <div class="form-row">
       <div class="form-group">
-        <label for="title">Title *</label>
-        <input 
-          type="text" 
-          id="title"
-          name="title"
-          [(ngModel)]="formData.title"
-          maxlength="100"
-          required
-          class="form-control"
-          [class.error]="error && !formData.title.trim()">
+        <label for="priority">Priority</label>
+        <select id="priority" name="priority" [(ngModel)]="formData.priority" class="form-control">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
       </div>
-      
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea 
-          id="description"
-          name="description"
-          [(ngModel)]="formData.description"
-          maxlength="500"
-          rows="3"
-          class="form-control">
-        </textarea>
+
+      <div class="form-group" *ngIf="isEditMode">
+        <label for="status">Status</label>
+        <select id="status" name="status" [(ngModel)]="formData.status" class="form-control">
+          <option value="todo">Todo</option>
+          <option value="in-progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
       </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="priority">Priority</label>
-          <select 
-            id="priority"
-            name="priority"
-            [(ngModel)]="formData.priority"
-            class="form-control">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-        
-        <div class="form-group" *ngIf="isEditMode">
-          <label for="status">Status</label>
-          <select 
-            id="status"
-            name="status"
-            [(ngModel)]="formData.status"
-            class="form-control">
-            <option value="todo">Todo</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="dueDate">Due Date</label>
-        <input 
-          type="date" 
-          id="dueDate"
-          name="dueDate"
-          [(ngModel)]="formData.dueDate"
-          class="form-control">
-      </div>
-      
-      <div class="error-message" *ngIf="error">{{ error }}</div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.title.trim()">
-          <span *ngIf="isLoading">Saving...</span>
-          <span *ngIf="!isLoading">{{ isEditMode ? 'Update' : 'Create' }} Task</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+    </div>
+
+    <div class="form-group">
+      <label for="dueDate">Due Date</label>
+      <input
+        type="date"
+        id="dueDate"
+        name="dueDate"
+        [(ngModel)]="formData.dueDate"
+        class="form-control"
+      />
+    </div>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+  </form>
+</app-modal>

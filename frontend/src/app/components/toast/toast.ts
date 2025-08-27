@@ -50,7 +50,7 @@ export class Toast implements OnInit, OnDestroy {
       })
 
     // NOTE - uncomment this to test toasts
-    this.testToast();
+    // this.testToast();
   }
 
   ngOnDestroy() {
@@ -187,7 +187,6 @@ export class Toast implements OnInit, OnDestroy {
         icon: true,
       })
     }, delay * startingIndex)
-
 
     setTimeout(() => {
       this.toastService.addToast({

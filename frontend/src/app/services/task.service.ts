@@ -23,6 +23,7 @@ export class TaskService {
         this.toastService.addToast({
           text: 'Task created successfully!',
           type: 'success',
+          delayAdd: true,
         });
       })
     );
@@ -34,6 +35,7 @@ export class TaskService {
         this.toastService.addToast({
           text: 'Task updated successfully!',
           type: 'success',
+          delayAdd: true,
         });
       })
     );
@@ -45,6 +47,7 @@ export class TaskService {
         this.toastService.addToast({
           text: 'Task deleted successfully!',
           type: 'success',
+          delayAdd: true,
         });
       })
     );

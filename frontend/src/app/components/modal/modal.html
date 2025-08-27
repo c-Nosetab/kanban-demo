@@ -1,0 +1,28 @@
+<div class="modal-backdrop" [class.closing]="isClosing" (click)="onBackdropClick($event)">
+  <div class="modal-content" [class.closing]="isClosing" (click)="onModalContentClick($event)">
+    <div class="modal-header">
+      <h2>{{ modalTitle }}</h2>
+      <button class="close-btn" (click)="onCancel()">✕</button>
+    </div>
+    <div class="modal-body" [style]="{ minHeight: contentMinHeight }">
+      <div class="content-container" [class.loading]="isLoading">
+        <div class="actual-content" [class.hidden]="isLoading">
+          <ng-content></ng-content>
+        </div>
+        @if (isLoading) {
+        <div class="loading-overlay">
+          <app-loading-spinner id="loading-spinner"></app-loading-spinner>
+        </div>
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="cancel-btn btn" (click)="onCancel()">{{ cancelText }}</button>
+        <button class="confirm-btn btn" (click)="onConfirm()" [disabled]="confirmDisabled">
+          {{ confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
