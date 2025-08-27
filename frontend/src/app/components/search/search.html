@@ -1,4 +1,11 @@
 <div class="search-bar" (click)="onSearchClick()">
   <mat-icon id="search-icon" fontSet="material-icons-round" title="search">search</mat-icon>
-  <input id="search-input" type="text" placeholder="Search tasks" (input)="onInput($event)" />
+  <input
+    id="search-input"
+    type="text"
+    placeholder="Search tasks"
+    (input)="onInput($event)"
+    [value]="value"
+    aria-label="Search tasks by title, description, or priority"
+  />
 </div>

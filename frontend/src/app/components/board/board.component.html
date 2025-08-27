@@ -4,43 +4,60 @@
   </div>
 
   <div class="row">
-    <div class="sort-options">
-      <label for="sort-options">Sort by:</label>
-      <div class="custom-select" (click)="toggleSortDropdown()" [class.open]="isSortDropdownOpen">
-        <div class="selected-option">
-          <span class="selected-text">{{ getSelectedOptionLabel() }}</span>
-          <span class="select-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7 10l5 5 5-5z" />
-            </svg>
-          </span>
-        </div>
-        @if (isSortDropdownOpen) {
-        <div class="dropdown-options">
-          @for (option of sortOptions; track option.id) {
-          <div
-            class="dropdown-option"
-            [class.selected]="option.id === curSortOption"
-            (click)="selectSortOption(option.id); $event.stopPropagation()"
-          >
-            {{ option.label }}
-          </div>
-          }
-        </div>
-        }
+    <div class="search-and-filtering" [class.expanded]="isFilteringExpanded">
+      <div class="filtering-header" (click)="toggleFilteringExpanded()">
+        <span class="filtering-title">Search & Filter</span>
+        <span class="expand-arrow" [class.expanded]="isFilteringExpanded">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 10l5 5 5-5z" />
+          </svg>
+        </span>
       </div>
-      <div class="direction-options" (click)="toggleSortDirection()">
-        <p [class.selected]="curSortDirection === 'asc'">ASC</p>
-        <p>/</p>
-        <p [class.selected]="curSortDirection === 'desc'">DESC</p>
+      <div class="filtering-content">
+        <div class="sort-options">
+          <label for="sort-options">Sort by:</label>
+          <div
+            class="custom-select"
+            (click)="toggleSortDropdown()"
+            [class.open]="isSortDropdownOpen"
+          >
+            <div class="selected-option">
+              <span class="selected-text">{{ getSelectedOptionLabel() }}</span>
+              <span class="select-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 10l5 5 5-5z" />
+                </svg>
+              </span>
+            </div>
+            @if (isSortDropdownOpen) {
+            <div class="dropdown-options">
+              @for (option of sortOptions; track option.id) {
+              <div
+                class="dropdown-option"
+                [class.selected]="option.id === curSortOption"
+                (click)="selectSortOption(option.id); $event.stopPropagation()"
+              >
+                {{ option.label }}
+              </div>
+              }
+            </div>
+            }
+          </div>
+          <div class="direction-options" (click)="toggleSortDirection()">
+            <p [class.selected]="curSortDirection === 'asc'">ASC</p>
+            <p>/</p>
+            <p [class.selected]="curSortDirection === 'desc'">DESC</p>
+          </div>
+        </div>
+
+        <app-search
+          class="search-bar"
+          (valueChange)="onSearch($event)"
+          [value]="searchValue"
+          placeholder="Search tasks"
+        ></app-search>
       </div>
     </div>
-    <app-search
-      class="search-bar"
-      (valueChange)="onSearch($event)"
-      [value]="searchValue"
-      placeholder="Search tasks"
-    ></app-search>
     <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
   </div>
 

@@ -11,6 +11,10 @@
   box-sizing: border-box;
   border: 1px solid #ccc;
 
+  &:focus-within {
+    border-color: #2096F3;
+  }
+
   #search-icon {
     cursor: pointer;
     scale: 0.8;

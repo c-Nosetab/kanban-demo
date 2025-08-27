@@ -21,6 +21,7 @@ export class BoardComponent implements OnInit {
   editingTask: Task | null = null;
   newTaskIds: Set<number> = new Set();
   isSortDropdownOpen = false;
+  isFilteringExpanded = false;
   curSortDirection: 'asc' | 'desc' = 'asc';
   searchValue: string = '';
 
@@ -56,6 +57,10 @@ export class BoardComponent implements OnInit {
 
   toggleSortDropdown(): void {
     this.isSortDropdownOpen = !this.isSortDropdownOpen;
+  }
+
+  toggleFilteringExpanded(): void {
+    this.isFilteringExpanded = !this.isFilteringExpanded;
   }
 
   getSelectedOptionLabel(): string {
