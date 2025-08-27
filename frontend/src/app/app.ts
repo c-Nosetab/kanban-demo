@@ -15,8 +15,8 @@ export class App {
   constructor(private taskService: TaskService) {}
 
   ngOnInit() {
-    this.taskService.resetTasks().subscribe(() => {
-      console.log('Tasks reset');
-    })
+    // this.taskService.resetTasks().subscribe(() => {
+    //   console.log('Tasks reset');
+    // })
   }
 }

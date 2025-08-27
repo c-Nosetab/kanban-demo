@@ -79,4 +79,10 @@ export class BoardComponent implements OnInit {
       this.loadTasks();
     });
   }
+
+  onResetTasks(): void {
+    this.taskService.resetTasks().subscribe(() => {
+      this.loadTasks();
+    });
+  }
 }

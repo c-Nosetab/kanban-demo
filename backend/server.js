@@ -1,9 +1,53 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const cron = require('node-cron');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS Configuration - Whitelist only frontend origin
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:4200';
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (origin === allowedOrigin) {
+      callback(null, true);
+    } else {
+      console.log(`Blocked request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: process.env.RATE_LIMIT_MESSAGE || 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  handler: (req, res) => {
+    console.log(`Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: process.env.RATE_LIMIT_MESSAGE || 'Too many requests from this IP, please try again later.',
+      retryAfter: Math.ceil(parseInt(process.env.RATE_LIMIT_WINDOW_MS) / 1000 / 60) // minutes
+    });
+  }
+});
+
+// Apply rate limiting to all routes
+app.use(limiter);
+
 app.use(express.json());
 
 const generateDate = (dayDelta) => {
@@ -58,10 +102,25 @@ let tasks = [...JSON.parse(JSON.stringify(generateTasks()))];
 
 let nextId = 5;
 
-app.post('/api/tasks/reset', (req, res) => {
-  tasks = [...JSON.parse(JSON.stringify(initialTasks))];
-  nextId = 4;
+// Function to reset tasks
+const resetTasks = () => {
+  tasks = [...JSON.parse(JSON.stringify(generateTasks()))];
+  nextId = 5;
+  console.log(`[${new Date().toISOString()}] Tasks reset by cron job`);
+};
 
+// Set up cron job to run every 20 minutes
+cron.schedule('*/20 * * * *', () => {
+  resetTasks();
+}, {
+  scheduled: true,
+  timezone: "UTC"
+});
+
+console.log('Cron job scheduled: Tasks will reset every 20 minutes');
+
+app.post('/api/tasks/reset', (req, res) => {
+  resetTasks();
   res.status(200).json(tasks);
 });
 
@@ -137,6 +196,42 @@ app.put('/api/tasks/:id/move', (req, res) => {
   res.json(tasks[taskIndex]);
 });
 
+// GET /api/cron/status - Get cron job status
+app.get('/api/cron/status', (req, res) => {
+  const now = new Date();
+  const nextRun = new Date(now.getTime() + (20 * 60 * 1000)); // 20 minutes from now
+
+  res.json({
+    status: 'active',
+    schedule: 'every 20 minutes',
+    nextRun: nextRun.toISOString(),
+    lastReset: now.toISOString(),
+    timezone: 'UTC'
+  });
+});
+
+// GET /api/security/status - Get security configuration status
+app.get('/api/security/status', (req, res) => {
+  res.json({
+    cors: {
+      enabled: true,
+      allowedOrigin: process.env.FRONTEND_ORIGIN || 'http://localhost:4200',
+      credentials: true
+    },
+    rateLimit: {
+      enabled: true,
+      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+      maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+      windowMinutes: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000 / 60)
+    },
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🔒 CORS enabled - Allowed origin: ${process.env.FRONTEND_ORIGIN || 'http://localhost:4200'}`);
+  console.log(`⏱️  Rate limiting: ${process.env.RATE_LIMIT_MAX_REQUESTS || 100} requests per ${Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000 / 60)} minutes`);
+  console.log(`🔄 Cron job active: Tasks will reset every 20 minutes`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

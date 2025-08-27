@@ -39,6 +39,26 @@
   gap: 20px;
 }
 
+.reset-tasks-btn {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.reset-tasks-btn:hover {
+  background-color: #1976d2;
+}
+
+.reset-tasks-btn:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 768px) {
   .board {
     grid-template-columns: 1fr;
@@ -51,3 +71,5 @@
     text-align: center;
   }
 }
+
+
