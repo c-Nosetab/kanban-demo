@@ -17,7 +17,28 @@ class Task {
   private generateTasks(): TaskType[] {
     return [
       {
+        id: 5,
+        order: 1,
+        title: "Wow, look at this task!",
+        description: "This is a task that is in the in-progress status.",
+        status: "in-progress",
+        priority: "low",
+        dueDate: this.generateDate(-20),
+        createdAt: "2025-08-26T10:00:00Z"
+      },
+      {
+        id: 6,
+        order: 2,
+        title: "Medium Todo",
+        description: "This is a task that is in the todo status.",
+        status: "todo",
+        priority: "medium",
+        dueDate: this.generateDate(60),
+        createdAt: "2025-08-26T10:00:00Z"
+      },
+      {
         id: 1,
+        order: 1,
         title: "Design user interface mockups",
         description: "Create wireframes and high-fidelity designs for the main dashboard",
         status: "todo",
@@ -27,6 +48,7 @@ class Task {
       },
       {
         id: 2,
+        order: 0,
         title: "Set up authentication system",
         description: "Implement JWT-based login and registration",
         status: "in-progress",
@@ -36,6 +58,7 @@ class Task {
       },
       {
         id: 3,
+        order: 0,
         title: "Deploy to production",
         description: "Configure hosting and deployment pipeline",
         status: "done",
@@ -45,6 +68,7 @@ class Task {
       },
       {
         id: 4,
+        order: 0,
         title: "Drag me to another column!",
         description: "Check out how the drag and drop works!",
         status: "todo",
@@ -56,8 +80,8 @@ class Task {
   }
 
   private initializeTasks(): void {
-    this.tasks = [...JSON.parse(JSON.stringify(this.generateTasks()))];
-    this.nextId = 5;
+    this.tasks = this.generateTasks();
+    this.nextId = this.tasks.length + 1;
   }
 
   public resetTasks(): void {
@@ -65,8 +89,42 @@ class Task {
     console.log(`[${new Date().toISOString()}] Tasks reset by cron job`);
   }
 
-  public getAllTasks(): TaskType[] {
-    return this.tasks;
+  public getAllTasks({ sortBy = 'order', sortDirection = 'asc' }: { sortBy?: keyof TaskType | undefined, sortDirection?: 'asc' | 'desc' } = {}): TaskType[] {
+    const tasks = this.tasks;
+
+    if (!sortBy) {
+      return tasks;
+    }
+
+    if (sortBy === 'priority') {
+      let priorityOrder = ['high', 'medium', 'low'];
+      if (sortDirection === 'desc') {
+        priorityOrder = priorityOrder.reverse();
+      }
+
+      tasks.sort((a, b) => {
+        const aIndex = priorityOrder.indexOf(a.priority);
+        const bIndex = priorityOrder.indexOf(b.priority);
+        return aIndex - bIndex;
+      });
+      return tasks;
+    }
+
+    const simpleOrder = ['id', 'order', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt'];
+
+    const isSimpleOrder = simpleOrder.includes(sortBy);
+
+    if (!isSimpleOrder) {
+      return tasks;
+    }
+
+    return tasks.sort((a, b) => {
+      if ((a[sortBy] !== undefined) && (b[sortBy] !== undefined)) {
+        if (a[sortBy]! < b[sortBy]!) return sortDirection === 'asc' ? -1 : 1;
+        if (a[sortBy]! > b[sortBy]!) return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
   }
 
   public getTaskById(id: number): TaskType | undefined {
@@ -80,8 +138,17 @@ class Task {
       throw new Error('Title is required');
     }
 
+    let newOrder = taskData?.order;
+
+    if (!newOrder) {
+      const todoTasks = this.tasks.filter(task => task.status === 'todo');
+      const maxOrder = Math.max(...todoTasks.map(task => task.order));
+      newOrder = maxOrder + 1;
+    }
+
     const newTask: TaskType = {
       id: this.nextId++,
+      order: newOrder,
       title,
       description: description || '',
       status: 'todo',

@@ -33,6 +33,129 @@
   }
 }
 
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+
+  .sort-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .custom-select {
+      position: relative;
+      min-width: 120px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s ease;
+
+      &:hover {
+        border-color: #999;
+      }
+
+      &.open {
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+
+      .selected-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 12px;
+        font-size: 14px;
+        color: #333;
+        min-height: 32px;
+        width: 100%;
+
+        .selected-text {
+          flex: 1;
+        }
+
+        .select-arrow {
+          display: flex;
+          align-items: center;
+          color: #666;
+          transition: transform 0.2s ease;
+          transform-origin: center;
+          margin-left: 8px;
+
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+
+      &.open .select-arrow {
+        transform: rotate(180deg);
+      }
+
+      .dropdown-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+
+        .dropdown-option {
+          padding: 6px 12px;
+          font-size: 14px;
+          color: #333;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          display: flex;
+          align-items: center;
+          min-height: 28px;
+
+          &:hover {
+            background-color: #f8f9fa;
+          }
+
+          &.selected {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+
+    .direction-options {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+
+      &:hover {
+        border-color: #999;
+      }
+
+      p {
+        transition: all 0.2s ease;
+        font-weight: bold;
+        border-bottom: 2px solid transparent;
+        &.selected {
+          border-bottom: 2px solid #007bff;
+        }
+      }
+    }
+  }
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

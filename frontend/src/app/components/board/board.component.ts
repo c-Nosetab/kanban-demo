@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
@@ -18,6 +18,16 @@ export class BoardComponent implements OnInit {
   showTaskForm = false;
   editingTask: Task | null = null;
   newTaskIds: Set<number> = new Set();
+  isSortDropdownOpen = false;
+  curSortDirection: 'asc' | 'desc' = 'asc';
+
+  sortOptions: { id: keyof Task, label: string }[] = [
+    { id: 'order', label: 'Order' },
+    { id: 'priority', label: 'Priority' },
+    { id: 'dueDate', label: 'Due Date' },
+    { id: 'title', label: 'Title' },
+  ];
+  curSortOption: keyof Task = 'order';
 
   constructor(
     private taskService: TaskService,
@@ -29,13 +39,48 @@ export class BoardComponent implements OnInit {
   }
 
   loadTasks(): void {
-    this.taskService.getTasks().subscribe((tasks) => {
+    this.taskService.getTasks(this.curSortOption, this.curSortDirection)
+      .subscribe((tasks) => {
       this.tasks = tasks;
     });
   }
 
   getTasksByStatus(status: string): Task[] {
     return this.tasks.filter(task => task.status === status);
+  }
+
+  toggleSortDropdown(): void {
+    this.isSortDropdownOpen = !this.isSortDropdownOpen;
+  }
+
+  getSelectedOptionLabel(): string {
+    const selectedOption = this.sortOptions.find(option => option.id === this.curSortOption);
+    return selectedOption ? selectedOption.label : 'Order';
+  }
+
+  selectSortOption(optionId: keyof Task): void {
+    this.curSortOption = optionId;
+    this.isSortDropdownOpen = false;
+    this.loadTasks();
+  }
+
+  toggleSortDirection(): void {
+    this.curSortDirection = this.curSortDirection === 'asc' ? 'desc' : 'asc';
+    this.loadTasks();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-select')) {
+      this.isSortDropdownOpen = false;
+    }
+  }
+
+  onSortChange(event: Event): void {
+    const selectedOption = (event.target as HTMLSelectElement).value;
+    this.curSortOption = selectedOption as keyof Task;
+    this.loadTasks();
   }
 
   onAddTask(): void {
@@ -73,14 +118,38 @@ export class BoardComponent implements OnInit {
     this.loadTasks();
   }
 
-  onTaskMoved(task: Task, newStatus: string): void {
-    // TODO: Implement task move functionality
-    this.taskService.moveTask(task.id!, newStatus).subscribe(() => {
-      this.loadTasks();
+  onTaskMoved({ taskId, oldIndex, newIndex, oldStatus, newStatus }: { taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }): void {
+    const task = this.tasks.find(task => {
+      return Number(task?.id) === Number(taskId);
     });
+    if (!task) {
+      return;
+    }
+
+    const updatedTask: Task = {
+      ...task,
+      // status: ,
+
+    }
+    console.log('🚀 - task:', task);
+    console.log('Old status:', oldStatus);
+    console.log('New status:', newStatus);
+    console.log('Old index:', oldIndex);
+    console.log('New index:', newIndex);
+    console.log('--------------------------------');
+
+    // TODO: Implement task move functionality
+    // this.taskService.moveTask(task.id!, newStatus).subscribe(() => {
+    //   this.loadTasks();
+    // });
   }
 
   onResetTasks(): void {
+    this.newTaskIds.clear();
+
+    this.curSortOption = 'order';
+    this.curSortDirection = 'asc';
+
     this.taskService.resetTasks().subscribe(() => {
       this.loadTasks();
     });

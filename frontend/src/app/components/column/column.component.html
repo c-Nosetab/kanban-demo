@@ -10,8 +10,9 @@
     [cdkDropListData]="tasks"
     (cdkDropListDropped)="onTaskDrop($event)"
   >
+    @for (task of tasks; track trackByTaskId(task.id!, task)) {
     <app-task-card
-      *ngFor="let task of tasks; trackBy: trackByTaskId"
+      [id]="task.id"
       [task]="task"
       [isNew]="isNewTask(task)"
       cdkDrag
@@ -19,8 +20,7 @@
       (taskDelete)="onTaskDelete()"
     >
     </app-task-card>
-
-    @if (tasks.length === 0) {
+    } @if (tasks.length === 0) {
     <div class="empty-state">
       <p>No tasks yet</p>
     </div>

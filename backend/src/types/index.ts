@@ -1,5 +1,6 @@
 export interface Task {
   id: number;
+  order: number;
   title: string;
   description: string;
   status: TaskStatus;
@@ -13,6 +14,7 @@ export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface CreateTaskRequest {
   title: string;
+  order?: number;
   description?: string;
   priority?: TaskPriority;
   dueDate?: string;

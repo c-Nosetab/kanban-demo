@@ -1,6 +1,40 @@
 <div class="board-container">
   <div class="board-header">
     <h1>Task Board Manager (Demo)</h1>
+  </div>
+
+  <div class="row">
+    <div class="sort-options">
+      <label for="sort-options">Sort by:</label>
+      <div class="custom-select" (click)="toggleSortDropdown()" [class.open]="isSortDropdownOpen">
+        <div class="selected-option">
+          <span class="selected-text">{{ getSelectedOptionLabel() }}</span>
+          <span class="select-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 10l5 5 5-5z" />
+            </svg>
+          </span>
+        </div>
+        @if (isSortDropdownOpen) {
+        <div class="dropdown-options">
+          @for (option of sortOptions; track option.id) {
+          <div
+            class="dropdown-option"
+            [class.selected]="option.id === curSortOption"
+            (click)="selectSortOption(option.id); $event.stopPropagation()"
+          >
+            {{ option.label }}
+          </div>
+          }
+        </div>
+        }
+      </div>
+      <div class="direction-options" (click)="toggleSortDirection()">
+        <p [class.selected]="curSortDirection === 'asc'">ASC</p>
+        <p>/</p>
+        <p [class.selected]="curSortDirection === 'desc'">DESC</p>
+      </div>
+    </div>
     <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
   </div>
 
@@ -12,7 +46,7 @@
       [isNewTask]="isNewTask.bind(this)"
       (taskEdit)="onEditTask($event)"
       (taskDelete)="onTaskDeleted()"
-      (taskMove)="onTaskMoved($event.task, $event.status)"
+      (taskMove)="onTaskMoved($event)"
     >
     </app-column>
 
@@ -23,7 +57,7 @@
       [isNewTask]="isNewTask.bind(this)"
       (taskEdit)="onEditTask($event)"
       (taskDelete)="onTaskDeleted()"
-      (taskMove)="onTaskMoved($event.task, $event.status)"
+      (taskMove)="onTaskMoved($event)"
     >
     </app-column>
 
@@ -34,7 +68,7 @@
       [isNewTask]="isNewTask.bind(this)"
       (taskEdit)="onEditTask($event)"
       (taskDelete)="onTaskDeleted()"
-      (taskMove)="onTaskMoved($event.task, $event.status)"
+      (taskMove)="onTaskMoved($event)"
     >
     </app-column>
   </div>

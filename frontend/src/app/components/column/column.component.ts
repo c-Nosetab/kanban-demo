@@ -19,10 +19,15 @@ export class ColumnComponent {
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<Task>();
-  @Output() taskMove = new EventEmitter<{task: Task, status: string}>();
+  @Output() taskMove = new EventEmitter<{ taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }>();
 
   onTaskEdit(task: Task): void {
     this.taskEdit.emit(task);
+  }
+
+  ngOnInit(): void {
+    // console.log('status:', this.status);
+    // console.log('tasks:', this.tasks);
   }
 
   onTaskDelete(): void {
@@ -30,8 +35,15 @@ export class ColumnComponent {
   }
 
   onTaskDrop(event: any): void {
-    console.log(event);
-    // TODO: Implement drag and drop logic
+    const id = event.item.element.nativeElement.id;
+    console.log('🚀 - task:', id);
+    this.taskMove.emit({
+      taskId: id,
+      oldIndex: event.previousIndex,
+      newIndex: event.currentIndex,
+      oldStatus: event.previousContainer.data,
+      newStatus: event.container.data,
+    });
   }
 
   trackByTaskId(index: number, task: Task): number {
