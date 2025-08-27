@@ -35,6 +35,12 @@
         <p [class.selected]="curSortDirection === 'desc'">DESC</p>
       </div>
     </div>
+    <app-search
+      class="search-bar"
+      (valueChange)="onSearch($event)"
+      [value]="searchValue"
+      placeholder="Search tasks"
+    ></app-search>
     <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
   </div>
 

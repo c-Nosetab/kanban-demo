@@ -5,21 +5,24 @@ import { TaskService } from '../../services/task.service';
 import { ColumnComponent } from '../column/column.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ToastService } from '../../services/toast.service';
+import { Search } from '../search/search';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, ColumnComponent, TaskFormComponent],
+  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit {
   tasks: Task[] = [];
+  filteredTasks: Task[] = [];
   showTaskForm = false;
   editingTask: Task | null = null;
   newTaskIds: Set<number> = new Set();
   isSortDropdownOpen = false;
   curSortDirection: 'asc' | 'desc' = 'asc';
+  searchValue: string = '';
 
   sortOptions: { id: keyof Task, label: string }[] = [
     { id: 'order', label: 'Order' },
@@ -41,12 +44,14 @@ export class BoardComponent implements OnInit {
   loadTasks(): void {
     this.taskService.getTasks(this.curSortOption, this.curSortDirection)
       .subscribe((tasks) => {
-      this.tasks = tasks;
+
+        this.tasks = tasks;
+        this.filteredTasks = [...this.tasks];
     });
   }
 
   getTasksByStatus(status: string): Task[] {
-    return this.tasks.filter(task => task.status === status);
+    return this.filteredTasks.filter(task => task.status === status);
   }
 
   toggleSortDropdown(): void {
@@ -152,6 +157,21 @@ export class BoardComponent implements OnInit {
 
     this.taskService.resetTasks().subscribe(() => {
       this.loadTasks();
+    });
+  }
+
+  onSearch(value: string): void {
+    this.searchValue = value;
+
+    this.filteredTasks = [...this.tasks].filter((task: Task) => {
+      const { title, description, priority } = task;
+      const searchValue = new RegExp(value, 'gi');
+
+      const titleMatch = searchValue.test(title);
+      const descriptionMatch = description ? searchValue.test(description) : false;
+      const priorityMatch = priority ? searchValue.test(priority) : false;
+
+      return titleMatch || descriptionMatch || priorityMatch;
     });
   }
 }
