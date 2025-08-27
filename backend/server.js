@@ -6,6 +6,12 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+const generateDate = (dayDelta) => {
+  const today = new Date();
+  today.setDate(today.getDate() + dayDelta);
+  return today.toISOString();
+}
+
 // In-memory data store
 const initialTasks = Object.freeze([
   {
@@ -14,7 +20,7 @@ const initialTasks = Object.freeze([
     description: "Create wireframes and high-fidelity designs for the main dashboard",
     status: "todo",
     priority: "high",
-    dueDate: "2025-09-15",
+    dueDate: generateDate(-2),
     createdAt: "2025-08-26T10:00:00Z"
   },
   {
@@ -23,7 +29,7 @@ const initialTasks = Object.freeze([
     description: "Implement JWT-based login and registration",
     status: "in-progress",
     priority: "medium",
-    dueDate: "2025-09-20",
+    dueDate: generateDate(1),
     createdAt: "2025-08-26T11:00:00Z"
   },
   {
@@ -32,7 +38,7 @@ const initialTasks = Object.freeze([
     description: "Configure hosting and deployment pipeline",
     status: "done",
     priority: "low",
-    dueDate: "2025-08-25",
+    dueDate: generateDate(-3),
     createdAt: "2025-08-25T09:00:00Z"
   },
   {
@@ -41,7 +47,7 @@ const initialTasks = Object.freeze([
     description: "Check out how the drag and drop works!",
     status: "todo",
     priority: "low",
-    dueDate: "2025-09-15",
+    dueDate: generateDate(10),
     createdAt: "2025-09-03T10:00:00Z"
   },
 ]); // freeze array
