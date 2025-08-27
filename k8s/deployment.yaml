@@ -27,7 +27,7 @@ spec:
         - name: NODE_ENV
           value: "production"
         - name: FRONTEND_ORIGIN
-          value: "http://localhost"
+          value: "http://localhost"  # Update this to your actual domain in production
         - name: RATE_LIMIT_WINDOW_MS
           value: "900000"
         - name: RATE_LIMIT_MAX_REQUESTS
@@ -87,7 +87,7 @@ data:
         server {
             listen 80;
             server_name _;
-            root /app/frontend/dist;
+            root /app/frontend/dist/frontend/browser;
             index index.html;
 
             location / {

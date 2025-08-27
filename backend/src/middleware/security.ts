@@ -1,10 +1,16 @@
 import { CorsOptions } from 'cors';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 
-// CORS Configuration - Whitelist only frontend origin
+// CORS Configuration - Whitelist only frontend origin in production
 const corsOptions: CorsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    const isProduction = process.env['NODE_ENV'] === 'production';
     const allowedOrigin = process.env['FRONTEND_ORIGIN'] || 'http://localhost:4200';
+
+    // In development, allow all origins
+    if (!isProduction) {
+      return callback(null, true);
+    }
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);

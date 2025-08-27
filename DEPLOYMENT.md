@@ -96,6 +96,106 @@ kubectl get service kanban-demo-service
 | `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | `100` | No |
 | `PORT` | Backend port | `3000` | No |
 
+## 🏗️ Production vs Development Builds
+
+### Development Environment (`NODE_ENV=development`)
+
+**Use Case**: Local development, testing, and debugging
+
+**Security Features**:
+- ✅ **CORS**: Allows requests from any origin
+- ✅ **Rate Limiting**: Enabled (100 requests per 15 minutes)
+- ✅ **Cron Jobs**: Active (resets tasks every 20 minutes)
+
+**Configuration**:
+```bash
+# docker-compose.yml (default)
+environment:
+  - NODE_ENV=development
+  - FRONTEND_ORIGIN=http://localhost:8080
+  - RATE_LIMIT_WINDOW_MS=900000
+  - RATE_LIMIT_MAX_REQUESTS=100
+  - PORT=3000
+```
+
+**Benefits**:
+- Flexible CORS for development tools
+- Easy testing from different origins
+- Full debugging capabilities
+- No production security restrictions
+
+### Production Environment (`NODE_ENV=production`)
+
+**Use Case**: Live deployment, demo, portfolio showcase
+
+**Security Features**:
+- 🔒 **CORS**: Whitelist only `FRONTEND_ORIGIN`
+- 🔒 **Rate Limiting**: Enabled (100 requests per 15 minutes)
+- 🔒 **Cron Jobs**: Active (resets tasks every 20 minutes)
+- 🔒 **Origin Validation**: Blocks unauthorized requests
+
+**Configuration**:
+```bash
+# Production deployment
+environment:
+  - NODE_ENV=production
+  - FRONTEND_ORIGIN=https://your-domain.com
+  - RATE_LIMIT_WINDOW_MS=900000
+  - RATE_LIMIT_MAX_REQUESTS=100
+  - PORT=3000
+```
+
+**Benefits**:
+- Secure CORS policy
+- Protection against unauthorized access
+- Production-ready security measures
+- Optimized for live deployment
+
+### Environment-Specific Behaviors
+
+| Feature | Development | Production |
+|---------|-------------|------------|
+| **CORS Policy** | Allow all origins | Whitelist only `FRONTEND_ORIGIN` |
+| **Error Logging** | Verbose | Standard |
+| **Security Headers** | Basic | Enhanced |
+| **Rate Limiting** | 100 req/15min | 100 req/15min |
+| **Cron Jobs** | Active | Active |
+| **Debug Info** | Available | Minimal |
+
+### Switching Between Environments
+
+**Local Development**:
+```bash
+# Use docker-compose (development by default)
+docker-compose up --build
+
+# Or explicitly set development
+docker run -p 8080:80 \
+  -e NODE_ENV=development \
+  kanban-demo:latest
+```
+
+**Production Deployment**:
+```bash
+# Railway, Render, Heroku, etc.
+docker run -p 8080:80 \
+  -e NODE_ENV=production \
+  -e FRONTEND_ORIGIN=https://your-domain.com \
+  kanban-demo:latest
+```
+
+**Kubernetes Production**:
+```yaml
+# k8s/deployment.yaml
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: FRONTEND_ORIGIN
+    value: "https://your-domain.com"  # Update this to your actual domain
+```
+
+**Important**: Before deploying to production, update the `FRONTEND_ORIGIN` in `k8s/deployment.yaml` to match your actual domain.
+
 ## 📊 Health Checks
 
 The application includes health check endpoints:

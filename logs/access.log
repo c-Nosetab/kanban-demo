@@ -14,3 +14,4 @@
 192.168.65.1 - - [27/Aug/2025:19:31:33 +0000] "GET /main-IJIK3YMJ.js HTTP/1.1" 200 154023 "http://localhost:8080/dashboard" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
 192.168.65.1 - - [27/Aug/2025:19:31:33 +0000] "GET /styles-KCV6CTAQ.css HTTP/1.1" 200 10738 "http://localhost:8080/dashboard" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
 192.168.65.1 - - [27/Aug/2025:19:32:17 +0000] "GET /api/tasks HTTP/1.1" 200 870 "-" "curl/8.7.1" "-"
+192.168.65.1 - - [27/Aug/2025:19:35:39 +0000] "GET /api/tasks HTTP/1.1" 200 870 "-" "curl/8.7.1" "-"
