@@ -20,8 +20,10 @@
     >
     </app-task-card>
 
-    <div class="empty-state" *ngIf="tasks.length === 0">
+    @if (tasks.length === 0) {
+    <div class="empty-state">
       <p>No tasks yet</p>
     </div>
+    }
   </div>
 </div>

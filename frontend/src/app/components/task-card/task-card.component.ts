@@ -64,7 +64,11 @@ export class TaskCardComponent implements OnInit {
 
   isOverdue(): boolean {
     if (!this.task.dueDate) return false;
-    return new Date(this.task.dueDate) < new Date();
+    return new Date(this.task.dueDate) < new Date() && this.task.status !== 'done';
+  }
+
+  isDone(): boolean {
+    return this.task.status === 'done';
   }
 
   formatDate(dateString?: string): string {

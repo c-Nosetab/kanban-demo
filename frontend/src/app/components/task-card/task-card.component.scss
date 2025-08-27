@@ -29,6 +29,11 @@
     border-left-color: #f44336;
     background-color: #ffeaea;
   }
+
+  &.done {
+    border-left-color: #4caf50;
+    background-color: #e8f5e8;
+  }
 }
 
 .task-header {
@@ -97,6 +102,15 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
+
+  &.done {
+    opacity: 0.5;
+
+    .task-due-date {
+      text-decoration: line-through;
+    }
+    // text-decoration: line-through;
+  }
 }
 
 .task-priority {
@@ -149,6 +163,12 @@
   transition: opacity 0.2s;
   cursor: grab;
   user-select: none;
+}
+
+.done {
+  // text-decoration: line-through;
+  text-decoration-color: #7184729f;
+  color: #7184729f;
 }
 
 @media (max-width: 768px) {
