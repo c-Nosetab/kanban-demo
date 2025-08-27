@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { ToastService } from '../../services/toast.service';
@@ -11,16 +11,24 @@ import { TaskService } from '../../services/task.service';
   templateUrl: './task-card.component.html',
   styleUrls: ['./task-card.component.scss']
 })
-export class TaskCardComponent {
+export class TaskCardComponent implements OnInit {
   @Input() task!: Task;
+  @Input() isNew: boolean = false;
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
 
   constructor(
     private toastService: ToastService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private elementRef: ElementRef
   ) { }
+
+  ngOnInit() {
+    if (this.isNew) {
+      this.animateIn();
+    }
+  }
 
   onEdit(): void {
     this.taskEdit.emit(this.task);
@@ -65,5 +73,20 @@ export class TaskCardComponent {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  private animateIn() {
+    const element = this.elementRef.nativeElement;
+
+    // Set initial state
+    element.style.opacity = '0';
+    element.style.transform = 'translateY(-10px)';
+    element.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+
+    // Trigger animation after a small delay to ensure DOM is ready
+    setTimeout(() => {
+      element.style.opacity = '1';
+      element.style.transform = 'translateY(0)';
+    }, 10);
   }
 }

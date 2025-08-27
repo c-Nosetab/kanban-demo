@@ -17,6 +17,7 @@ export class BoardComponent implements OnInit {
   tasks: Task[] = [];
   showTaskForm = false;
   editingTask: Task | null = null;
+  newTaskIds: Set<number> = new Set();
 
   constructor(
     private taskService: TaskService,
@@ -28,7 +29,6 @@ export class BoardComponent implements OnInit {
   }
 
   loadTasks(): void {
-    // TODO: Implement task loading
     this.taskService.getTasks().subscribe((tasks) => {
       this.tasks = tasks;
     });
@@ -53,10 +53,20 @@ export class BoardComponent implements OnInit {
     this.editingTask = null;
   }
 
-  onTaskSaved(): void {
+  onTaskSaved(newTaskId: number | null): void {
     this.showTaskForm = false;
     this.editingTask = null;
+
+    if (newTaskId) {
+      // Mark this task as new for animation
+      this.newTaskIds.add(newTaskId);
+    }
+
     this.loadTasks();
+  }
+
+  isNewTask(task: Task): boolean {
+    return this.newTaskIds.has(task.id!);
   }
 
   onTaskDeleted(): void {

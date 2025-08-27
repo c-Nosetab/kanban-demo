@@ -3,16 +3,23 @@
     <h3>{{ title }}</h3>
     <span class="task-count">{{ tasks.length }}</span>
   </div>
-  
-  <div class="column-content" cdkDropList [cdkDropListData]="tasks" (cdkDropListDropped)="onTaskDrop($event)">
-    <app-task-card 
+
+  <div
+    class="column-content"
+    cdkDropList
+    [cdkDropListData]="tasks"
+    (cdkDropListDropped)="onTaskDrop($event)"
+  >
+    <app-task-card
       *ngFor="let task of tasks; trackBy: trackByTaskId"
       [task]="task"
+      [isNew]="isNewTask(task)"
       cdkDrag
       (taskEdit)="onTaskEdit($event)"
-      (taskDelete)="onTaskDelete()">
+      (taskDelete)="onTaskDelete()"
+    >
     </app-task-card>
-    
+
     <div class="empty-state" *ngIf="tasks.length === 0">
       <p>No tasks yet</p>
     </div>

@@ -16,7 +16,7 @@ import { ToastService } from '../../services/toast.service';
 export class TaskFormComponent implements OnInit {
   @Input() task: Task | null = null;
 
-  @Output() taskSaved = new EventEmitter<void>();
+  @Output() taskSaved = new EventEmitter<number | null>();
   @Output() formClosed = new EventEmitter<void>();
 
   isOpen = true;
@@ -72,8 +72,8 @@ export class TaskFormComponent implements OnInit {
           this.modalRef.closeAfterSuccess();
           // Delay the emit until after animation completes
           setTimeout(() => {
-            this.taskSaved.emit();
-          }, 300); // Match modal animation duration
+            this.taskSaved.emit(null); // No new task ID for updates
+          }, 290); // Match modal animation duration
         },
         error: (error) => {
           this.isLoading = false;
@@ -83,13 +83,13 @@ export class TaskFormComponent implements OnInit {
     } else {
       // Create new task
       this.taskService.createTask(this.formData).subscribe({
-        next: () => {
+        next: (newTask) => {
           this.isLoading = false;
           this.modalRef.closeAfterSuccess();
           // Delay the emit until after animation completes
           setTimeout(() => {
-            this.taskSaved.emit();
-          }, 300); // Match modal animation duration
+            this.taskSaved.emit(newTask.id || null);
+          }, 290); // Match modal animation duration
         },
         error: (error) => {
           this.isLoading = false;

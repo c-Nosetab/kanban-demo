@@ -15,6 +15,7 @@ export class ColumnComponent {
   @Input() title!: string;
   @Input() status!: string;
   @Input() tasks: Task[] = [];
+  @Input() isNewTask: (task: Task) => boolean = () => false;
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<Task>();
