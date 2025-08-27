@@ -1,12 +1,35 @@
 # Task Board Manager - Backend
 
-Express.js API server for the Task Board Manager application.
+Express.js API server for the Task Board Manager application with TypeScript and MVC architecture.
+
+## Project Structure
+
+```
+backend/
+├── controllers/          # Request handlers
+│   ├── taskController.js
+│   └── systemController.js
+├── middleware/           # Express middleware
+│   └── security.js
+├── models/              # Data models
+│   └── Task.js
+├── routes/              # Route definitions
+│   ├── index.js
+│   ├── taskRoutes.js
+│   └── systemRoutes.js
+├── services/            # Business logic services
+│   └── cronService.js
+├── server.js            # Main application file
+└── package.json
+```
 
 ## Setup
 
 ```bash
 npm install
-npm run dev
+npm run build    # Build TypeScript to JavaScript
+npm start        # Run production build
+npm run dev      # Run development server with hot reload
 ```
 
 ## API Endpoints
@@ -75,10 +98,20 @@ NODE_ENV=development
 
 ## Dependencies
 
+### Production Dependencies
 - express
 - cors
 - node-cron
 - express-rate-limit
 - dotenv
+
+### Development Dependencies
+- typescript
+- @types/node
+- @types/express
+- @types/cors
+- @types/node-cron
+- ts-node
+- ts-node-dev
 
 Server runs on http://localhost:3000
