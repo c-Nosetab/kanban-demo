@@ -13,48 +13,50 @@ const generateDate = (dayDelta) => {
 }
 
 // In-memory data store
-const initialTasks = Object.freeze([
-  {
-    id: 1,
-    title: "Design user interface mockups",
-    description: "Create wireframes and high-fidelity designs for the main dashboard",
-    status: "todo",
-    priority: "high",
-    dueDate: generateDate(-2),
-    createdAt: "2025-08-26T10:00:00Z"
-  },
-  {
-    id: 2,
-    title: "Set up authentication system",
-    description: "Implement JWT-based login and registration",
-    status: "in-progress",
-    priority: "medium",
-    dueDate: generateDate(1),
-    createdAt: "2025-08-26T11:00:00Z"
-  },
-  {
-    id: 3,
-    title: "Deploy to production",
-    description: "Configure hosting and deployment pipeline",
-    status: "done",
-    priority: "low",
-    dueDate: generateDate(-3),
-    createdAt: "2025-08-25T09:00:00Z"
-  },
-  {
-    id: 4,
-    title: "Drag me to another column!",
-    description: "Check out how the drag and drop works!",
-    status: "todo",
-    priority: "low",
-    dueDate: generateDate(10),
-    createdAt: "2025-09-03T10:00:00Z"
-  },
-]); // freeze array
+const generateTasks = () => {
+  return [
+    {
+      id: 1,
+      title: "Design user interface mockups",
+      description: "Create wireframes and high-fidelity designs for the main dashboard",
+      status: "todo",
+      priority: "high",
+      dueDate: generateDate(-2),
+      createdAt: "2025-08-26T10:00:00Z"
+    },
+    {
+      id: 2,
+      title: "Set up authentication system",
+      description: "Implement JWT-based login and registration",
+      status: "in-progress",
+      priority: "medium",
+      dueDate: generateDate(1),
+      createdAt: "2025-08-26T11:00:00Z"
+    },
+    {
+      id: 3,
+      title: "Deploy to production",
+      description: "Configure hosting and deployment pipeline",
+      status: "done",
+      priority: "low",
+      dueDate: generateDate(-3),
+      createdAt: "2025-08-25T09:00:00Z"
+    },
+    {
+      id: 4,
+      title: "Drag me to another column!",
+      description: "Check out how the drag and drop works!",
+      status: "todo",
+      priority: "low",
+      dueDate: generateDate(10),
+      createdAt: "2025-09-03T10:00:00Z"
+    },
+  ];
+}
 
-let tasks = [...JSON.parse(JSON.stringify(initialTasks))];
+let tasks = [...JSON.parse(JSON.stringify(generateTasks()))];
 
-let nextId = 4;
+let nextId = 5;
 
 app.post('/api/tasks/reset', (req, res) => {
   tasks = [...JSON.parse(JSON.stringify(initialTasks))];
