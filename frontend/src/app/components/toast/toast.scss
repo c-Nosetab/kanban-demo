@@ -1,51 +1,69 @@
+/* CSS Custom Properties (CSS Variables) */
 :root {
+  /* Success theme */
   --success-color: #bbec88;
   --success-outline: #3a6a09;
   --success-dark-bg: #21261c;
   --success-dark-color: #3a6a09;
 
+  /* Info theme */
   --info-color: #64f0fc;
   --info-outline: #005965;
   --info-dark-bg: #1b2425;
   --info-dark-color: #005965;
 
+  /* Warning theme */
   --warn-color: #ffd75c;
   --warn-outline: #c2731c;
   --warn-dark-bg: #2e271e;
   --warn-dark-color: #c2731c;
 
+  /* Error theme */
   --error-color: #ff9d6f;
   --error-outline: #af2f0d;
   --error-dark-bg: #2d201c;
   --error-dark-color: #af2f0d;
 }
 
+/* Main toast component */
 .toast {
+  /* Positioning and layout */
   position: fixed;
-  max-width: 322px;
-  background-color: var(--success-color);
-  border-radius: 4px;
-  box-shadow: 0px 4px 14px 0px rgba(0, 0, 0, 0.25);
-  padding: 16px;
-  text-align: left;
-  gap: 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
   left: 24px;
   bottom: 24px;
   z-index: 9999;
 
+  /* Sizing and spacing */
+  max-width: 322px;
+  padding: 16px;
+  gap: 8px;
+
+  /* Visual styling */
+  background-color: var(--success-color);
+  border-radius: 4px;
+  box-shadow: 0px 4px 14px 0px rgba(0, 0, 0, 0.25);
+
+  /* Typography and alignment */
+  text-align: left;
+
+  /* Flexbox layout */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  /* Interactive */
+  cursor: pointer;
+
+  /* Span elements */
   span {
     max-width: 220px;
-    /* // max-width: 400px; */
+
+    &.full-text {
+      display: none;
+    }
   }
 
-  span.full-text {
-    display: none;
-  }
-
+  /* Size variants */
   &.dense {
     padding: 8px 16px;
   }
@@ -55,14 +73,17 @@
   }
 
   &.dismiss {
-    /* // animation: toastyDismissible 1s forwards; */
+    /* animation: toastyDismissible 1s forwards; */
   }
 
   &.outline {
     background: white !important;
   }
 
+  /* Type variants */
   &.success {
+    background: var(--success-color);
+
     &.outline {
       border: 1px solid var(--success-outline);
       color: var(--success-outline);
@@ -106,7 +127,7 @@
   }
 
   &.error {
-      background: var(--error-color);
+    background: var(--error-color);
 
     &.outline {
       border: 1px solid var(--error-outline);
@@ -119,14 +140,11 @@
       color: var(--error-dark-color);
     }
   }
-}
 
-.toast {
-  cursor: pointer;
-
+  /* Hover interactions */
   &:hover {
     .close {
-      color:#005965;
+      color: #005965;
     }
 
     span {
@@ -138,4 +156,3 @@
     }
   }
 }
-

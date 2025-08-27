@@ -9,12 +9,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-}
 
-.board-header h1 {
-  color: #333;
-  font-size: 2rem;
-  margin: 0;
+  h1 {
+    color: #333;
+    font-size: 2rem;
+    margin: 0;
+  }
 }
 
 .add-task-btn {
@@ -27,10 +27,10 @@
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s;
-}
 
-.add-task-btn:hover {
-  background-color: #1976d2;
+  &:hover {
+    background-color: #1976d2;
+  }
 }
 
 .board {
@@ -44,7 +44,7 @@
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .board-header {
     flex-direction: column;
     gap: 15px;

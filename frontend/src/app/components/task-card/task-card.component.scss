@@ -7,20 +7,28 @@
   transition: all 0.2s ease;
   position: relative;
   border-left: 4px solid transparent;
-}
 
-.task-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
 
-.task-card:active {
-  cursor: grabbing;
-}
+    .task-actions {
+      opacity: 1;
+    }
 
-.task-card.overdue {
-  border-left-color: #f44336;
-  background-color: #ffeaea;
+    .drag-handle {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.overdue {
+    border-left-color: #f44336;
+    background-color: #ffeaea;
+  }
 }
 
 .task-header {
@@ -51,10 +59,6 @@
   transition: opacity 0.2s;
 }
 
-.task-card:hover .task-actions {
-  opacity: 1;
-}
-
 .edit-btn, .delete-btn {
   background: none;
   border: none;
@@ -65,12 +69,16 @@
   transition: background-color 0.2s;
 }
 
-.edit-btn:hover {
-  background-color: #e3f2fd;
+.edit-btn {
+  &:hover {
+    background-color: #e3f2fd;
+  }
 }
 
-.delete-btn:hover {
-  background-color: #ffebee;
+.delete-btn {
+  &:hover {
+    background-color: #ffebee;
+  }
 }
 
 .task-description {
@@ -123,11 +131,11 @@
   font-size: 0.75rem;
   color: #666;
   font-weight: 500;
-}
 
-.task-due-date.overdue {
-  color: #d32f2f;
-  font-weight: 600;
+  &.overdue {
+    color: #d32f2f;
+    font-weight: 600;
+  }
 }
 
 .drag-handle {
@@ -143,15 +151,11 @@
   user-select: none;
 }
 
-.task-card:hover .drag-handle {
-  opacity: 1;
-}
-
 @media (max-width: 768px) {
   .task-actions {
     opacity: 1;
   }
-  
+
   .drag-handle {
     opacity: 1;
   }

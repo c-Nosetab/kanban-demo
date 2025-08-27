@@ -9,11 +9,11 @@ import { TaskService } from '../../services/task.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './task-form.component.html',
-  styleUrls: ['./task-form.component.css']
+  styleUrls: ['./task-form.component.scss']
 })
 export class TaskFormComponent implements OnInit {
   @Input() task: Task | null = null;
-  
+
   @Output() taskSaved = new EventEmitter<void>();
   @Output() formClosed = new EventEmitter<void>();
 

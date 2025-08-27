@@ -13,14 +13,13 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class Toast implements OnInit, OnDestroy {
   toasts: SetToastObject[] = [];
-  autoRemoveRunning = false;
-  toastAdded = false;
-  prevTimeline: gsap.core.Timeline | null = null;
+  toastTimeout: any = null;
 
   left = 24;
   bottom = 24;
   gap = 10;
-  duration = 1;
+  animationDuration = 1;
+  toastHoldDuration = 2;
   delay = 2;
   easeType = 'power3.inOut';
 
@@ -40,7 +39,11 @@ export class Toast implements OnInit, OnDestroy {
         toast._.id = id;
         toast._.displayText = toast.text.length > 30 ? `${toast.text.slice(0, 30)}...` : toast.text;
 
-        this.toasts = this.toasts ? [ ...this.toasts, toast ] : [ toast ];
+        this.toasts = this.toasts ? [...this.toasts, toast] : [toast];
+
+        setTimeout(() => {
+          this.addToast();
+        }, 0);
       })
 
     // NOTE - uncomment this to test toasts
@@ -51,190 +54,154 @@ export class Toast implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  animateToastArr(forceAnimation = false, noDelay = false) {
-    if (this.removalRunning && !forceAnimation) return;
+  clearTimeout() {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
+    }
+  }
 
-    if (this.prevTimeline) {
-      this.prevTimeline.progress(1);
-      this.prevTimeline.kill();
+  setToastTimeout() {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
     }
 
-    let toastEls = Array.from(document.querySelectorAll('.toast'));
+    const date = new Date();
+    this.toastTimeout = setTimeout(() => {
+      this.removeToast();
+      const diff = new Date().getTime() - date.getTime();
+      const diffInSeconds = diff / 1000;
+      console.log('🚀 - diffInSeconds:', diffInSeconds);
+    }, this.toastHoldDuration * 1000);
+  }
 
-    toastEls = toastEls.filter((el) => {
-      const id = el.getAttribute('id');
-      const inArray = this.toasts.some((toast) => toast?._?.id === id);
-      const wasRemoved = el.classList.contains('removing');
-      return inArray && !wasRemoved; // Exclude removing toasts
-    });
+  private getToastAttrs() {
+    const toastEls = Array.from(document.querySelectorAll('.toast'));
 
-    if (toastEls.length === 0) return;
+    return this.toasts.map((toast, i) => {
+      const id = toast._!.id!;
+      const el = toastEls.find(el => el.id === id);
 
-    const timeline = gsap.timeline({
-      onComplete: () => {
-        this.scanForAutoDismiss();
+      if (!el) return null;
+
+      return {
+        index: i,
+        id: id,
+        el: el,
+        height: el.clientHeight,
+        width: el.clientWidth,
+        y: Number(gsap.getProperty(el, 'y')),
       }
     });
+  }
 
-    const newEl = toastEls.find(el => !el.classList.contains('has-appeared')) as HTMLDivElement;
 
-    // Set initial position for new toast only if there is one
-    if (newEl) {
-      const otherEls = toastEls.filter(el => el !== newEl);
-      const sum = otherEls.reduce((acc, el) => acc + el.clientHeight + this.gap, 0) * -1;
+  addToast() {
+    const toasts = this.getToastAttrs();
+    const newToast = toasts?.[this.toasts.length - 1];
+    if (!newToast) return;
 
-      timeline.set(newEl, {
-        x: -newEl.clientWidth - 24,
-        y: sum,
-      }, 0);
-    }
+    this.clearTimeout();
 
-    let curHeightDelta = 0;
+    const topToast = toasts[toasts.length - 2];
+    const topGsapY = Math.abs(topToast?.y || 0);
 
-    toastEls.forEach((toastEl, i) => {
-      const targetY = -curHeightDelta;
-      const delay = noDelay ? 0 : 0.05 * i;
+    const newToastHeight = newToast.height!;
+    const newToastWidth = newToast.width!;
 
-      if (toastEl === newEl) {
-        // New toast - animate it in
-        timeline.to(toastEl, {
-          x: 0,
-          y: targetY,
-          duration: 1,
-          ease: 'power1.inOut',
-          onComplete: () => {
-            toastEl.classList.add('has-appeared');
-          }
-        }, delay);
-      } else if (!toastEl.classList.contains('has-appeared')) {
-        // Position other toasts instantly
-        timeline.set(toastEl, {
-          x: 0,
-          y: targetY,
-          onComplete: () => {
-            toastEl.classList.add('has-appeared');
-          }
-        }, delay);
-      } else {
-        // Existing toasts - only reposition if needed
-        const currentY = gsap.getProperty(toastEl, 'y');
-        if (currentY !== targetY) {
-          timeline.to(toastEl, {
-            x: 0,
-            y: targetY,
-            duration: this.duration,
-            ease: 'power1.inOut',
-          }, delay);
+    const yTarget = topToast ? topGsapY + newToastHeight + this.gap : 0;
+
+    gsap.set(newToast.el, {
+      y: -yTarget,
+      x: -newToastWidth - this.left - 50,
+    });
+
+    gsap.to(newToast.el, {
+      x: 0,
+      duration: this.animationDuration,
+      ease: this.easeType,
+      onComplete: () => {
+        this.setToastTimeout();
+      }
+    });
+  }
+
+  removeToast() {
+    this.clearTimeout();
+
+    const toasts = this.getToastAttrs();
+
+    const bottomToast = toasts[0]!;
+    const secondToast = toasts[1];
+    const otherToastEl = toasts.filter((el, i) => i !== 0).map(el => el?.el);
+
+
+    gsap.to(bottomToast.el, {
+      y: bottomToast.height + this.gap + 100,
+      duration: this.animationDuration,
+      ease: this.easeType,
+      onComplete: () => {
+        if (!otherToastEl.length) {
+          this.toasts = [];
+          return;
         }
       }
-      curHeightDelta += toastEl.clientHeight + this.gap;
-    });
+    })
 
-    this.prevTimeline = timeline;
-  }
 
-  dismissToast(toast: Element, bottomToast = false) {
-    toast.classList.add('removing');
+    if (!secondToast) return;
 
-    return new Promise((resolve) => {
-      this.removalRunning = true;
+    const secondY = secondToast.y;
 
-      if (bottomToast) {
-        gsap.to(toast, {
-          x: 0,
-          y: toast.clientHeight + 100,
-          duration: 0.6,
-          ease: 'power1.inOut',
-        });
-      } else {
-        gsap.to(toast, {
-          x: (toast.clientWidth + 24) * -1,
-          duration: 0.6,
-          ease: 'power1.inOut',
-        });
+    gsap.to(otherToastEl, {
+      y: `+=${-secondY}`,
+      duration: this.animationDuration,
+      ease: this.easeType,
+      stagger: 0.1,
+      onComplete: () => {
+        this.toasts.shift();
+
+        if (this.toasts.length > 0) {
+          this.setToastTimeout();
+        }
       }
-
-      setTimeout(() => {
-        this.autoRemoveRunning = false;
-        resolve(true);
-      }, 550)
-    });
-  }
-
-  async removeToast($event: Event, toast: SetToastObject) {
-    $event.stopPropagation();
-
-    const toastEls = Array.from(document.querySelectorAll('.toast'));
-    const target = toastEls.find((el) => el.getAttribute('id') === toast?._?.id);
-
-    if (!target) return;
-
-    let lastToast = false;
-    const targetY = gsap.getProperty(target, 'y');
-    if (toastEls.length === 1 || targetY === 0) {
-      lastToast = true;
-    }
-
-    // Remove from array and dismiss toast
-    this.toasts = this.toasts.filter((t) => t?._?.id !== toast?._?.id);
-
-    await this.dismissToast(target, lastToast);
-
-    // After dismiss is complete, animate remaining toasts
-    if (this.toasts.length > 0) {
-      this.animateToastArr(true, true);
-    }
-
-    this.removalRunning = false;
-  }
-
-  scanForAutoDismiss() {
-    const toastEls = Array.from(document.querySelectorAll('.toast'));
-    const toasts = this.toasts;
-
-    if (toasts.length === 0) return;
-
-    const lastAutoRemovableToast = toasts.find((toast) => toast.dismissible === false);
-
-    if (lastAutoRemovableToast && !this.autoRemoveRunning) {
-      this.autoRemoveRunning = true;
-      setTimeout(() => {
-        this.removeToast(new Event('click'), lastAutoRemovableToast);
-      }, 1000 * 3);
-    }
+    })
   }
 
   testToast() {
-    this.toastService.addToast({
-      text: 'Loading ... 1',
-      type: 'success',
-      icon: true,
-      dismissible: false,
-    })
+    const delay = 1000;
+    const startingIndex = 0
+    setTimeout(() => {
+      this.toastService.addToast({
+        text: 'Loading ... 1',
+        type: 'success',
+        icon: true,
+      })
+    }, delay * startingIndex)
+
 
     setTimeout(() => {
       this.toastService.addToast({
         text: 'Loading ... 2',
         type: 'info',
         icon: true,
-        dismissible: false,
+        outline: true,
       })
-    }, 1000 * 1)
-    // setTimeout(() => {
-    //   this.toastService.addToast({
-    //     text: 'Loading ... 3', type: 'warn', icon: true, dismissible: false,
-    //   })
-    // }, 1000 * 1.8)
-    // setTimeout(() => {
-    //   this.toastService.addToast({
-    //     text: 'Loading... 4', type: 'error', icon: true, dismissible: false,
-    //   })
-    // }, 1000 * 4)
+    }, delay * (startingIndex + 1))
+    setTimeout(() => {
+      this.toastService.addToast({
+        text: 'Loading ... 3', type: 'warn', icon: true,
+      })
+    }, delay * (startingIndex + 2))
+    setTimeout(() => {
+      this.toastService.addToast({
+        text: 'Loading... 4', type: 'error', icon: true,
+      })
+    }, delay * (startingIndex + 3))
   }
 
-  @ViewChild('elementToCheck') set elementToCheck(elementToCheck: any) {
-    this.animateToastArr();
-  }
-
-
+  // @ViewChild('elementToCheck') set elementToCheck(elementToCheck: any) {
+  //   this.addToast();
+  // }
 }

@@ -9,13 +9,13 @@ import { CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
   standalone: true,
   imports: [CommonModule, TaskCardComponent, CdkDropList, CdkDrag],
   templateUrl: './column.component.html',
-  styleUrls: ['./column.component.css']
+  styleUrls: ['./column.component.scss']
 })
 export class ColumnComponent {
   @Input() title!: string;
   @Input() status!: string;
   @Input() tasks: Task[] = [];
-  
+
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
   @Output() taskMove = new EventEmitter<{task: Task, status: string}>();

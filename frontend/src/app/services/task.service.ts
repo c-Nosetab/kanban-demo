@@ -23,7 +23,6 @@ export class TaskService {
         this.toastService.addToast({
           text: 'Task created successfully!',
           type: 'success',
-          dismissible: true,
         });
       })
     );

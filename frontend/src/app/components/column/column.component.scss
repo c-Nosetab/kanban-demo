@@ -14,15 +14,15 @@
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 2px solid #c5cae9;
-}
 
-.column-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #3f51b5;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3f51b5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 }
 
 .task-count {
@@ -51,10 +51,10 @@
   flex: 1;
   color: #999;
   font-style: italic;
-}
 
-.empty-state p {
-  margin: 0;
+  p {
+    margin: 0;
+  }
 }
 
 .cdk-drop-list {

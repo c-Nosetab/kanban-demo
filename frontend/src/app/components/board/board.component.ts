@@ -11,7 +11,7 @@ import { ToastService } from '../../services/toast.service';
   standalone: true,
   imports: [CommonModule, ColumnComponent, TaskFormComponent],
   templateUrl: './board.component.html',
-  styleUrls: ['./board.component.css']
+  styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit {
   tasks: Task[] = [];

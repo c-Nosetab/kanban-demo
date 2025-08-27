@@ -7,7 +7,7 @@ import { Toast } from './components/toast/toast';
   selector: 'app-root',
   imports: [RouterOutlet, Toast],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.scss'
 })
 export class App {
   title = 'Task Board Manager';

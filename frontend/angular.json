@@ -8,7 +8,23 @@
   "projects": {
     "frontend": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        },
+        "@schematics/angular:directive": {
+          "style": "scss"
+        },
+        "@schematics/angular:pipe": {
+          "style": "scss"
+        },
+        "@schematics/angular:resolver": {
+          "style": "scss"
+        },
+        "@schematics/angular:service": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -28,7 +44,7 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -85,7 +101,7 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ]
           }
         }

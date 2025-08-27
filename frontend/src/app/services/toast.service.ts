@@ -5,7 +5,6 @@ export interface SetToastObject {
   text: string;
   type: 'success' | 'error' | 'warn' | 'info';
   icon?: boolean | 'check' | 'error' | 'warning' | 'info';
-  dismissible?: boolean;
   outline?: boolean;
   dark?: boolean;
   style?: 'default' | 'dense' | 'tall';
@@ -39,7 +38,6 @@ export class ToastService {
   addToast = (toast: SetToastObject) => {
     if (toast.type === undefined) toast.type = 'success';
     if (toast.icon === undefined) toast.icon = true;
-    if (toast.dismissible === undefined) toast.dismissible = false;
     if (toast.outline === undefined) toast.outline = false;
     if (toast.dark === undefined) toast.dark = false;
     if (toast.style === undefined) toast.style = 'default';

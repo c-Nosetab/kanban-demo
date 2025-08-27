@@ -7,11 +7,11 @@ import { Task } from '../../models/task.interface';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './task-card.component.html',
-  styleUrls: ['./task-card.component.css']
+  styleUrls: ['./task-card.component.scss']
 })
 export class TaskCardComponent {
   @Input() task!: Task;
-  
+
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
 
@@ -44,9 +44,9 @@ export class TaskCardComponent {
 
   formatDate(dateString?: string): string {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     });
   }
 }
