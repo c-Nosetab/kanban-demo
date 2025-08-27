@@ -1,29 +1,23 @@
-/* CSS Custom Properties (CSS Variables) */
-:root {
-  /* Success theme */
-  --success-color: #bbec88;
-  --success-outline: #3a6a09;
-  --success-dark-bg: #21261c;
-  --success-dark-color: #3a6a09;
+/* SCSS Variables for toast theming */
+$success-color: #bbec88;
+$success-outline: #3a6a09;
+$success-dark-bg: #21261c;
+$success-dark-color: #3a6a09;
 
-  /* Info theme */
-  --info-color: #64f0fc;
-  --info-outline: #005965;
-  --info-dark-bg: #1b2425;
-  --info-dark-color: #005965;
+$info-color: #64f0fc;
+$info-outline: #005965;
+$info-dark-bg: #1b2425;
+$info-dark-color: #005965;
 
-  /* Warning theme */
-  --warn-color: #ffd75c;
-  --warn-outline: #c2731c;
-  --warn-dark-bg: #2e271e;
-  --warn-dark-color: #c2731c;
+$warn-color: #ffd75c;
+$warn-outline: #c2731c;
+$warn-dark-bg: #2e271e;
+$warn-dark-color: #c2731c;
 
-  /* Error theme */
-  --error-color: #ff9d6f;
-  --error-outline: #af2f0d;
-  --error-dark-bg: #2d201c;
-  --error-dark-color: #af2f0d;
-}
+$error-color: #ff9d6f;
+$error-outline: #af2f0d;
+$error-dark-bg: #2d201c;
+$error-dark-color: #af2f0d;
 
 /* Main toast component */
 .toast {
@@ -39,7 +33,7 @@
   gap: 8px;
 
   /* Visual styling */
-  background-color: var(--success-color);
+  background-color: $success-color;
   border-radius: 4px;
   box-shadow: 0px 4px 14px 0px rgba(0, 0, 0, 0.25);
 
@@ -72,72 +66,68 @@
     padding: 28px 16px;
   }
 
-  &.dismiss {
-    /* animation: toastyDismissible 1s forwards; */
-  }
-
   &.outline {
     background: white !important;
   }
 
   /* Type variants */
   &.success {
-    background: var(--success-color);
+    background: $success-color;
 
     &.outline {
-      border: 1px solid var(--success-outline);
-      color: var(--success-outline);
+      border: 1px solid $success-outline;
+      color: $success-outline;
     }
 
     &.dark {
       border: none;
-      background: var(--success-dark-bg);
-      color: var(--success-dark-color);
+      background: $success-dark-bg;
+      color: $success-dark-color;
     }
   }
 
   &.info {
-    background: var(--info-color);
+    background: $info-color;
 
     &.outline {
-      border: 1px solid var(--info-outline);
-      color: var(--info-outline);
+      border: 1px solid $info-outline;
+      color: $info-outline;
     }
 
     &.dark {
       border: none;
-      background: var(--info-dark-bg);
-      color: var(--info-dark-color);
+      background: $info-dark-bg;
+      color: $info-dark-color;
     }
   }
 
   &.warn {
-    background: var(--warn-color);
+    background: $warn-color;
 
     &.outline {
-      border: 1px solid var(--warn-outline);
-      color: var(--warn-outline);
+      border: 1px solid $warn-outline;
+      color: $warn-outline;
     }
 
     &.dark {
       border: none;
-      background: var(--warn-dark-bg);
-      color: var(--warn-dark-color);
+      background: $warn-dark-bg;
+      color: $warn-dark-color;
     }
   }
 
   &.error {
-    background: var(--error-color);
+    background: $error-color;
 
     &.outline {
-      border: 1px solid var(--error-outline);
-      color: var(--error-outline);
+      border: 1px solid $error-outline;
+      color: $error-outline;
     }
 
     &.dark {
       border: none;
-      background: var(--error-dark-bg);
-      color: var(--error-dark-color);
+      background: $error-dark-bg;
+      color: $error-dark-color;
     }
   }
 

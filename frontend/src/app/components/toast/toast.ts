@@ -18,9 +18,12 @@ export class Toast implements OnInit, OnDestroy {
   left = 24;
   bottom = 24;
   gap = 10;
-  animationDuration = 1;
+
+  animationInDuration = 1.5;
+  animationOutDuration = 1;
   toastHoldDuration = 2;
   delay = 2;
+  stagger = 0.05;
   easeType = 'power3.inOut';
 
   removalRunning = false;
@@ -54,6 +57,8 @@ export class Toast implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
+  // #region Timeout Handlers
+
   clearTimeout() {
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
@@ -67,14 +72,14 @@ export class Toast implements OnInit, OnDestroy {
       this.toastTimeout = null;
     }
 
-    const date = new Date();
     this.toastTimeout = setTimeout(() => {
       this.removeToast();
-      const diff = new Date().getTime() - date.getTime();
-      const diffInSeconds = diff / 1000;
-      console.log('🚀 - diffInSeconds:', diffInSeconds);
     }, this.toastHoldDuration * 1000);
   }
+
+  // #endregion Timeout Handlers
+
+  // #region Toast Handlers
 
   private getToastAttrs() {
     const toastEls = Array.from(document.querySelectorAll('.toast'));
@@ -95,7 +100,6 @@ export class Toast implements OnInit, OnDestroy {
       }
     });
   }
-
 
   addToast() {
     const toasts = this.getToastAttrs();
@@ -119,7 +123,7 @@ export class Toast implements OnInit, OnDestroy {
 
     gsap.to(newToast.el, {
       x: 0,
-      duration: this.animationDuration,
+      duration: this.animationInDuration,
       ease: this.easeType,
       onComplete: () => {
         this.setToastTimeout();
@@ -139,7 +143,7 @@ export class Toast implements OnInit, OnDestroy {
 
     gsap.to(bottomToast.el, {
       y: bottomToast.height + this.gap + 100,
-      duration: this.animationDuration,
+      duration: this.animationOutDuration,
       ease: this.easeType,
       onComplete: () => {
         if (!otherToastEl.length) {
@@ -156,9 +160,9 @@ export class Toast implements OnInit, OnDestroy {
 
     gsap.to(otherToastEl, {
       y: `+=${-secondY}`,
-      duration: this.animationDuration,
+      duration: this.animationOutDuration,
       ease: this.easeType,
-      stagger: 0.1,
+      stagger: this.stagger,
       onComplete: () => {
         this.toasts.shift();
 
@@ -169,8 +173,12 @@ export class Toast implements OnInit, OnDestroy {
     })
   }
 
+  // #endregion Toast Handlers
+
+  // #region Test Toast
+
   testToast() {
-    const delay = 1000;
+    const delay = 2000;
     const startingIndex = 0
     setTimeout(() => {
       this.toastService.addToast({
@@ -186,7 +194,6 @@ export class Toast implements OnInit, OnDestroy {
         text: 'Loading ... 2',
         type: 'info',
         icon: true,
-        outline: true,
       })
     }, delay * (startingIndex + 1))
     setTimeout(() => {
@@ -201,7 +208,5 @@ export class Toast implements OnInit, OnDestroy {
     }, delay * (startingIndex + 3))
   }
 
-  // @ViewChild('elementToCheck') set elementToCheck(elementToCheck: any) {
-  //   this.addToast();
-  // }
+  // #endregion Test Toast
 }

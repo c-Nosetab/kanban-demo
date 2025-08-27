@@ -18,3 +18,11 @@ button {
 input, textarea, select {
   font-family: inherit;
 }
+
+#toast-container {
+  z-index: 9999;
+}
+
+#router-outlet {
+  z-index: 1;
+}
