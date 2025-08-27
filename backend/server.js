@@ -34,7 +34,16 @@ const initialTasks = Object.freeze([
     priority: "low",
     dueDate: "2025-08-25",
     createdAt: "2025-08-25T09:00:00Z"
-  }
+  },
+  {
+    id: 4,
+    title: "Drag me to another column!",
+    description: "Check out how the drag and drop works!",
+    status: "todo",
+    priority: "low",
+    dueDate: "2025-09-15",
+    createdAt: "2025-09-03T10:00:00Z"
+  },
 ]); // freeze array
 
 let tasks = [...JSON.parse(JSON.stringify(initialTasks))];

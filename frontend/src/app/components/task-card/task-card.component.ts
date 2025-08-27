@@ -88,5 +88,11 @@ export class TaskCardComponent implements OnInit {
       element.style.opacity = '1';
       element.style.transform = 'translateY(0)';
     }, 10);
+
+    setTimeout(() => {
+      element.style.opacity = '';
+      element.style.transform = '';
+      element.style.transition = '';
+    }, 300);
   }
 }
