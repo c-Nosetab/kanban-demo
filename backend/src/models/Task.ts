@@ -20,7 +20,7 @@ class Task {
         id: 5,
         order: 1,
         title: "Wow, look at this task!",
-        description: "This is a task that is in the in-progress status.",
+        description: "Click to see the full description. This is a task that is in the in-progress status. Character limits for these are followed, but you can always see the full description details!",
         status: "in-progress",
         priority: "low",
         dueDate: this.generateDate(-20),
