@@ -17,6 +17,9 @@ dotenv.config();
 const app = express();
 const PORT: number = parseInt(process.env['PORT'] || '3000');
 
+// Trust proxy for rate limiting behind nginx
+app.set('trust proxy', 1);
+
 // Apply middleware
 app.use(cors(corsOptions));
 app.use(limiter);
