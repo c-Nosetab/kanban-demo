@@ -1,4 +1,4 @@
-import { Task as TaskType, CreateTaskRequest, UpdateTaskRequest } from '../types';
+import { Task as TaskType, CreateTaskRequest, UpdateTaskRequest, TaskStatus } from '../types';
 
 class Task {
   private tasks: TaskType[] = [];
@@ -9,11 +9,7 @@ class Task {
   }
 
   private getTaskIndex(id: number): number {
-    const index = this.tasks.findIndex(task => task.id === id);
-    if (index === -1) {
-      throw new Error('Task not found');
-    }
-    return index;
+    return this.tasks.findIndex(task => task.id === id);
   }
 
   private generateDate(dayDelta: number): string {
@@ -101,15 +97,35 @@ class Task {
     console.log(`[${new Date().toISOString()}] Tasks reset by cron job`);
   }
 
-  public getAllTasks({ sortBy = 'order', sortDirection = 'asc', priority = [] }: { sortBy?: keyof TaskType | undefined, sortDirection?: 'asc' | 'desc', priority?: ('low' | 'medium' | 'high')[] } = {}): TaskType[] {
+  public getAllTasks({ sortBy = 'order', sortDirection = 'asc', priority = [], filterString = '' }:
+    {
+      sortBy?: keyof TaskType | undefined,
+      sortDirection?: 'asc' | 'desc',
+      priority?: ('low' | 'medium' | 'high')[],
+      filterString?: string
+    } = {}): TaskType[] {
     let tasks = this.tasks;
 
-    tasks = tasks.filter(task => priority.includes(task.priority));
+
+    // filter all the tasks
+    tasks = tasks.filter(task => {
+      let passes = true;
+
+      if (filterString) {
+        const inTitle = task.title.toLowerCase().includes(filterString.toLowerCase());
+        const inDescription = task.description.toLowerCase().includes(filterString.toLowerCase());
+
+        passes = inTitle || inDescription
+      }
+
+      return passes && priority.includes(task.priority);
+    })
 
     if (!sortBy) {
       return tasks;
     }
 
+    // sort the tasks
     if (sortBy === 'priority') {
       let priorityOrder = ['high', 'medium', 'low'];
       if (sortDirection === 'desc') {
@@ -121,14 +137,6 @@ class Task {
         const bIndex = priorityOrder.indexOf(b.priority);
         return aIndex - bIndex;
       });
-      return tasks;
-    }
-
-    const simpleOrder = ['id', 'order', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt'];
-
-    const isSimpleOrder = simpleOrder.includes(sortBy);
-
-    if (!isSimpleOrder) {
       return tasks;
     }
 
@@ -176,20 +184,43 @@ class Task {
   }
 
   public updateTask(id: number, updateData: UpdateTaskRequest): TaskType {
-    const { status: newStatus, order: newOrder } = updateData;
     const taskIndex = this.getTaskIndex(id);
-    const taskToUpdate = this.tasks[taskIndex];
 
-    if (!taskToUpdate) {
+    if (taskIndex === -1) {
+      throw new Error('Task not found');
+    }
+    const taskToUpdate = this.tasks[taskIndex]!;
+
+    if (taskToUpdate.status !== updateData.status) {
+      this.moveTask(id, updateData.status!);
+    }
+
+    const updatedTask: TaskType = { ...taskToUpdate, ...updateData };
+
+    return updatedTask;
+  }
+
+  public deleteTask(id: number): boolean {
+    const taskIndex = this.tasks.findIndex(task => task.id === id);
+
+    if (taskIndex === -1) {
       throw new Error('Task not found');
     }
 
-    if (!taskToUpdate) {
+    this.tasks.splice(taskIndex, 1);
+    return true;
+  }
+
+  public moveTask(id: number, newStatus: TaskStatus, newOrder: number = 0): TaskType {
+    const taskIndex = this.getTaskIndex(id);
+
+    if (!taskIndex) {
       throw new Error('Task not found');
     }
+    const taskToUpdate = this.tasks[taskIndex]!;
+
 
     const updateBodies = [];
-
     if (newStatus !== taskToUpdate.status) {
       const tasksInPreviousStatus = this.tasks
         .filter(task => task.status === taskToUpdate.status && task.id !== id)
@@ -210,26 +241,25 @@ class Task {
     })
     updateBodies.push(...newUpdateBodies);
 
-    const updatedTask: TaskType = { ...taskToUpdate, ...updateData };
+    const updatedTask: TaskType = {
+      ...taskToUpdate,
+      status: newStatus,
+      order: newOrder,
+    };
     updateBodies.push(updatedTask);
 
     updateBodies.forEach(task => {
       const taskIndex = this.getTaskIndex(task.id)
-      this.tasks[taskIndex] = { ...task, ...updateData };
+
+      if (taskIndex === -1) {
+        throw new Error('Task not found');
+      }
+
+      const taskToUpdate = this.tasks[taskIndex]!;
+      this.tasks[taskIndex] = { ...taskToUpdate, ...task };
     });
 
     return updatedTask;
-  }
-
-  public deleteTask(id: number): boolean {
-    const taskIndex = this.tasks.findIndex(task => task.id === id);
-
-    if (taskIndex === -1) {
-      throw new Error('Task not found');
-    }
-
-    this.tasks.splice(taskIndex, 1);
-    return true;
   }
 }
 

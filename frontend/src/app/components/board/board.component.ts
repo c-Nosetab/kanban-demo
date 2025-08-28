@@ -17,7 +17,7 @@ import { CheckboxGroup } from '../checkbox-group/checkbox-group';
 })
 export class BoardComponent implements OnInit {
   tasks: Task[] = [];
-  filteredTasks: Task[] = [];
+
   showTaskForm = false;
   editingTask: Task | null = null;
   newTaskIds: Set<number> = new Set();
@@ -55,16 +55,28 @@ export class BoardComponent implements OnInit {
   }
 
   loadTasks(): void {
-    this.taskService.getTasks(this.curSortOption, this.curSortDirection, this.selectedPriorityOptions)
-      .subscribe((tasks) => {
-
+    this.taskService.getTasks({
+      sortOption: this.curSortOption,
+      sortDirection: this.curSortDirection,
+      priorityOptions: this.selectedPriorityOptions,
+      filterString: this.searchValue,
+    })
+      .subscribe({
+        next: (tasks) => {
         this.tasks = tasks;
-        this.filteredTasks = [...this.tasks];
+      },
+      error: (error) => {
+        this.toastService.addToast({
+          text: `Error loading tasks: ${error.message}`,
+          type: 'error',
+          delayAdd: false,
+        });
+      }
     });
   }
 
   getTasksByStatus(status: string): Task[] {
-    return this.filteredTasks.filter(task => task.status === status);
+    return this.tasks.filter(task => task.status === status);
   }
 
   toggleSortDropdown(): void {
@@ -97,12 +109,6 @@ export class BoardComponent implements OnInit {
     if (!target.closest('.custom-select')) {
       this.isSortDropdownOpen = false;
     }
-  }
-
-  onSortChange(event: Event): void {
-    const selectedOption = (event.target as HTMLSelectElement).value;
-    this.curSortOption = selectedOption as keyof Task;
-    this.loadTasks();
   }
 
   onAddTask(): void {
@@ -161,9 +167,7 @@ export class BoardComponent implements OnInit {
     console.log('--------------------------------');
 
     // TODO: Implement task move functionality
-    // this.taskService.moveTask(task.id!, newStatus).subscribe(() => {
-    //   this.loadTasks();
-    // });
+
   }
 
   onResetTasks(): void {
@@ -177,19 +181,16 @@ export class BoardComponent implements OnInit {
     });
   }
 
+  onSortChange(event: Event): void {
+    const selectedOption = (event.target as HTMLSelectElement).value;
+    this.curSortOption = selectedOption as keyof Task;
+    this.loadTasks();
+  }
+
   onSearch(value: string): void {
     this.searchValue = value;
 
-    this.filteredTasks = [...this.tasks].filter((task: Task) => {
-      const { title, description, priority } = task;
-      const searchValue = new RegExp(value, 'gi');
-
-      const titleMatch = searchValue.test(title);
-      const descriptionMatch = description ? searchValue.test(description) : false;
-      const priorityMatch = priority ? searchValue.test(priority) : false;
-
-      return titleMatch || descriptionMatch || priorityMatch;
-    });
+    this.loadTasks();
   }
 
   onPrioritySelected({ option, isSelected }: { option: string, isSelected: boolean }): void {

@@ -21,12 +21,12 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest {
+  id: number;
+  status?: TaskStatus;
   title?: string;
   description?: string;
-  status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string;
-  order: number;
 }
 
 export interface MoveTaskRequest {

@@ -10,6 +10,7 @@ import { MatIcon } from '@angular/material/icon';
 export class Search {
   @Input() placeholder: string = 'Search tasks';
   @Input() value: string = '';
+  @Input() debounceTime: number = 300;
 
   @Output() valueChange = new EventEmitter<string>();
 
@@ -32,6 +33,6 @@ export class Search {
         this.value = value;
         this.valueChange.emit(this.value);
       }
-    }, 500);
+    }, this.debounceTime);
   }
 }

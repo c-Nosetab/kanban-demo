@@ -6,8 +6,8 @@
   [cancelText]="cancelText"
   [autoCloseOnConfirm]="false"
   [confirmDisabled]="isLoading || !formData.title.trim()"
-  (cancel)="onCancel()"
-  (confirm)="onConfirm()"
+  (onCancel)="onCancel()"
+  (onConfirm)="onConfirm()"
 >
   <form (ngSubmit)="onSubmit()" #taskForm="ngForm" class="task-form">
     <div class="form-group">
