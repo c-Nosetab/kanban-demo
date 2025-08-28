@@ -57,7 +57,6 @@ export class TaskCardComponent implements OnInit {
   }
 
   onDeleteModalCancel(): void {
-    console.log('onDeleteModalCancel');
     this.isDeleteModalOpen = false;
   }
 

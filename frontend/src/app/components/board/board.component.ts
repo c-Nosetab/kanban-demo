@@ -6,11 +6,12 @@ import { ColumnComponent } from '../column/column.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { ToastService } from '../../services/toast.service';
 import { Search } from '../search/search';
+import { CheckboxGroup } from '../checkbox-group/checkbox-group';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search],
+  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search, CheckboxGroup],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
@@ -33,6 +34,17 @@ export class BoardComponent implements OnInit {
   ];
   curSortOption: keyof Task = 'order';
 
+  priorityOptions: { label: string; value: string }[] = [
+    { label: 'High', value: 'high' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'Low', value: 'low' },
+  ];
+  selectedPriorityOptions: string[] = [
+    'low',
+    'medium',
+    'high',
+  ];
+
   constructor(
     private taskService: TaskService,
     private toastService: ToastService
@@ -43,7 +55,7 @@ export class BoardComponent implements OnInit {
   }
 
   loadTasks(): void {
-    this.taskService.getTasks(this.curSortOption, this.curSortDirection)
+    this.taskService.getTasks(this.curSortOption, this.curSortDirection, this.selectedPriorityOptions)
       .subscribe((tasks) => {
 
         this.tasks = tasks;
@@ -178,5 +190,15 @@ export class BoardComponent implements OnInit {
 
       return titleMatch || descriptionMatch || priorityMatch;
     });
+  }
+
+  onPrioritySelected({ option, isSelected }: { option: string, isSelected: boolean }): void {
+    if (isSelected) {
+      this.selectedPriorityOptions = this.selectedPriorityOptions.filter(opt => opt !== option);
+    } else {
+      this.selectedPriorityOptions = [...this.selectedPriorityOptions, option];
+    }
+
+    this.loadTasks();
   }
 }

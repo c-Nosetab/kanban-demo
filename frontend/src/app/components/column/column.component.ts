@@ -25,18 +25,12 @@ export class ColumnComponent {
     this.taskEdit.emit(task);
   }
 
-  ngOnInit(): void {
-    // console.log('status:', this.status);
-    // console.log('tasks:', this.tasks);
-  }
-
   onTaskDelete(): void {
     this.taskDelete.emit();
   }
 
   onTaskDrop(event: any): void {
     const id = event.item.element.nativeElement.id;
-    console.log('🚀 - task:', id);
     this.taskMove.emit({
       taskId: id,
       oldIndex: event.previousIndex,

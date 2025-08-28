@@ -52,7 +52,6 @@ export class TaskFormComponent implements OnInit {
   }
 
   onConfirm(): void {
-    console.log('🚀 - onConfirm');
     this.onSubmit();
   }
 

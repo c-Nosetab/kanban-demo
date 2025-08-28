@@ -1,0 +1,98 @@
+.checkbox-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .checkbox-options {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+
+    .checkbox-option {
+      cursor: pointer;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: color 0.3s ease;
+      position: relative;
+
+      .checkbox-icon {
+        transition: color 0.3s ease, opacity 0.3s ease;
+        position: absolute;
+        left: 0;
+        top: 0;
+        scale: 0.8;
+      }
+
+      .checked {
+        color: #2096F3;
+        opacity: 0;
+      }
+
+      .unchecked {
+        color: #4848488e;
+        opacity: 1;
+      }
+
+      &.checked {
+        .unchecked {
+          opacity: 0;
+        }
+
+        .checked {
+          opacity: 1;
+        }
+      }
+
+      label {
+        margin-left: 24px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .checkbox-group {
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkbox-group {
+    font-size: 12px;
+    // justify-content: space-between;
+
+    .checkbox-options {
+      // flex-wrap: wrap;
+      gap: 4px;
+
+      .checkbox-option {
+        .checkbox-icon {
+          top: -4px;
+
+        }
+
+        label {
+          font-size: 12px !important;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 380px) {
+  .checkbox-group {
+    justify-content: space-between;
+
+    .checkbox-options {
+      flex: 1;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+  }
+}
