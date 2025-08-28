@@ -1,12 +1,19 @@
-<div class="task-card" [class.overdue]="isOverdue()" [class.done]="isDone()">
+<div
+  class="task-card"
+  [class.overdue]="isOverdue()"
+  [class.done]="isDone()"
+  (click)="handleTaskClick()"
+>
   <div class="task-header">
     <h4 class="task-title" [class.done]="isDone()">{{ task.title }}</h4>
     <div class="task-actions">
-      <button class="edit-btn" (click)="onEdit()" title="Edit task">✏️</button>
+      <button class="edit-btn" (click)="onEdit(); $event.stopPropagation()" title="Edit task">
+        ✏️
+      </button>
       <button
         class="delete-btn"
         [class.warning]="isDeleteModalOpen"
-        (click)="openDeleteModal()"
+        (click)="openDeleteModal(); $event.stopPropagation()"
         title="Delete task"
       >
         🗑️

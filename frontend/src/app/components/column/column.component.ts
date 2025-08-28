@@ -20,6 +20,7 @@ export class ColumnComponent {
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<Task>();
   @Output() taskMove = new EventEmitter<{ taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }>();
+  @Output() taskView = new EventEmitter<Task>();
 
   onTaskEdit(task: Task): void {
     this.taskEdit.emit(task);
@@ -27,6 +28,10 @@ export class ColumnComponent {
 
   onTaskDelete(): void {
     this.taskDelete.emit();
+  }
+
+  onTaskView(task: Task): void {
+    this.taskView.emit(task);
   }
 
   onTaskDrop(event: any): void {

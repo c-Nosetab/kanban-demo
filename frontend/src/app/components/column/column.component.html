@@ -18,6 +18,7 @@
       cdkDrag
       (taskEdit)="onTaskEdit($event)"
       (taskDelete)="onTaskDelete()"
+      (taskView)="onTaskView($event)"
     >
     </app-task-card>
     } @if (tasks.length === 0) {

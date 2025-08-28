@@ -1,0 +1,189 @@
+.task-view {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+
+  min-height: 50vh;
+}
+.task-header {
+  display: flex;
+  // justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+
+  .task-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .task-status {
+
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.status-todo {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    &.status-in-progress {
+      background-color: #fff3e0;
+      color: #f57c00;
+    }
+
+    &.status-done {
+      background-color: #e8f5e8;
+      color: #388e3c;
+    }
+  }
+}
+
+.left-side {
+  padding: 24px;
+  flex: 1;
+  border-right: 1px solid #eee;
+}
+
+.right-side {
+  min-width: 30%;
+  max-width: 30%;
+  display: flex;
+  flex-direction: column;
+
+  .blank-section {
+    flex: 1;
+  }
+  .task-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 14px;
+
+    .task-section-header {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+      padding: 4px 0;
+      height: 24px;
+
+      background-color: #eee;
+    }
+
+    .task-section-content {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+      height: 40px;
+
+      background-color: #fff;
+
+      .task-due-date {
+        padding: 4px 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        height: 100%;
+
+        &.overdue {
+          color: white;
+          background-color: #de5353;
+          font-weight: 600;
+        }
+      }
+      .task-priority {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        gap: 4px;
+
+        border-bottom: 1px solid transparent;
+
+      }
+    }
+
+
+    .icon {
+      &.overdue-icon {
+        scale: 0.8;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .task-header {
+    justify-content: flex-start;
+    align-items: center;
+
+    .task-title {
+      font-size: 1.1rem;
+    }
+
+    .task-status {
+      font-size: 0.8rem;
+    }
+  }
+
+  .task-view {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .right-side {
+    margin: 0 auto;
+    min-width: none;
+    max-width: none;
+    width: 100%;
+
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    border-top: 1px solid #eee;
+
+
+    .blank-section {
+      display: none;
+    }
+
+    .task-section {
+      width: 50%;
+    }
+
+    .due-date-section {
+      width: 100%;
+    }
+
+    .created-section {
+      border-left: 1px solid #EEEEEE;
+
+      .task-created {
+        font-size: 0.8rem;
+      }
+    }
+
+  }
+}
+
+
+

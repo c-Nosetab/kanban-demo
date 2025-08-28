@@ -22,6 +22,7 @@ export class TaskCardComponent implements OnInit {
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
+  @Output() taskView = new EventEmitter<Task>();
 
   @ViewChild(Modal) modalRef!: Modal;
 
@@ -36,8 +37,9 @@ export class TaskCardComponent implements OnInit {
     }
   }
 
-  onClick(): void {
-    console.log('onClick');
+  handleTaskClick(): void {
+    console.log('Task card clicked:', this.task.title);
+    this.taskView.emit(this.task);
   }
 
   onEdit(): void {

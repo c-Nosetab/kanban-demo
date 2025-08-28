@@ -29,7 +29,7 @@ class Task {
         status: "todo",
         priority: "low",
         dueDate: this.generateDate(10),
-        createdAt: "2025-09-03T10:00:00Z"
+        createdAt: this.generateDate(0)
       },
       {
         id: 1,
@@ -39,7 +39,7 @@ class Task {
         status: "todo",
         priority: "high",
         dueDate: this.generateDate(-2),
-        createdAt: "2025-08-26T10:00:00Z"
+        createdAt: this.generateDate(-20)
       },
       {
         id: 6,
@@ -49,7 +49,7 @@ class Task {
         status: "todo",
         priority: "medium",
         dueDate: this.generateDate(60),
-        createdAt: "2025-08-26T10:00:00Z"
+        createdAt: this.generateDate(-3)
       },
 
       // ! in-progress
@@ -61,7 +61,7 @@ class Task {
         status: "in-progress",
         priority: "medium",
         dueDate: this.generateDate(1),
-        createdAt: "2025-08-26T11:00:00Z"
+        createdAt: this.generateDate(-25)
       },
       {
         id: 5,
@@ -71,7 +71,7 @@ class Task {
         status: "in-progress",
         priority: "low",
         dueDate: this.generateDate(-20),
-        createdAt: "2025-08-26T10:00:00Z"
+        createdAt: this.generateDate(-50)
       },
       // ! done
       {
@@ -82,7 +82,7 @@ class Task {
         status: "done",
         priority: "low",
         dueDate: this.generateDate(-3),
-        createdAt: "2025-08-25T09:00:00Z"
+        createdAt: this.generateDate(-5)
       },
     ];
   }

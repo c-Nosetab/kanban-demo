@@ -1,7 +1,10 @@
 <div class="modal-backdrop" [class.closing]="isClosing" (click)="onBackdropClick($event)">
   <div class="modal-content" [class.closing]="isClosing" (click)="onModalContentClick($event)">
     <div class="modal-header" [class.warning]="isWarning">
-      <h2>{{ modalTitle }}</h2>
+      <ng-content select="[modal-header]">
+        <h2>{{ modalTitle }}</h2>
+      </ng-content>
+
       <button class="close-btn" (click)="handleCancel()">✕</button>
     </div>
     <div class="modal-body" [class.fit-to-content]="fitToContent">

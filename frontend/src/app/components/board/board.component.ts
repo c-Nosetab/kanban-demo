@@ -4,6 +4,7 @@ import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
 import { ColumnComponent } from '../column/column.component';
 import { TaskFormComponent } from '../task-form/task-form.component';
+import { TaskViewComponent } from '../task-view/task-view.component';
 import { ToastService } from '../../services/toast.service';
 import { Search } from '../search/search';
 import { CheckboxGroup } from '../checkbox-group/checkbox-group';
@@ -13,7 +14,7 @@ import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search, CheckboxGroup, CdkDropListGroup],
+  imports: [CommonModule, ColumnComponent, TaskFormComponent, TaskViewComponent, Search, CheckboxGroup, CdkDropListGroup],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
@@ -22,7 +23,9 @@ export class BoardComponent implements OnInit {
   tasks: Task[] = [];
 
   showTaskForm = false;
+  showTaskView = false;
   editingTask: Task | null = null;
+  viewingTask: Task | null = null;
   newTaskIds: Set<number> = new Set();
   isSortDropdownOpen = false;
   isFilteringExpanded = false;
@@ -124,9 +127,20 @@ export class BoardComponent implements OnInit {
     this.showTaskForm = true;
   }
 
+  onViewTask(task: Task): void {
+    console.log('Opening task view for:', task.title);
+    this.viewingTask = task;
+    this.showTaskView = true;
+  }
+
   onTaskFormClose(): void {
     this.showTaskForm = false;
     this.editingTask = null;
+  }
+
+  onTaskViewClose(): void {
+    this.showTaskView = false;
+    this.viewingTask = null;
   }
 
   onTaskSaved(newTaskId: number | null): void {
@@ -139,6 +153,13 @@ export class BoardComponent implements OnInit {
     }
 
     this.loadTasks();
+  }
+
+  onTaskViewEdit(task: Task): void {
+    this.showTaskView = false;
+    this.viewingTask = null;
+    this.editingTask = task;
+    this.showTaskForm = true;
   }
 
   isNewTask(task: Task): boolean {

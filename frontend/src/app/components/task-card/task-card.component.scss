@@ -3,7 +3,7 @@
   border-radius: 6px;
   padding: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: grab;
+  cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   border-left: 4px solid transparent;
@@ -11,6 +11,7 @@
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
+    border-color: #2196f3;
 
     .task-actions {
       opacity: 1;
@@ -23,6 +24,11 @@
 
   &:active {
     cursor: grabbing;
+  }
+
+  // Show grab cursor when hovering over drag handle
+  &:has(.drag-handle:hover) {
+    cursor: grab;
   }
 
   &.overdue {
