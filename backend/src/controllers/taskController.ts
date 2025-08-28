@@ -8,6 +8,7 @@ class TaskController {
     try {
       const sortByParam = _req?.query?.['sortBy'] as string;
       const sortDirectionParam = _req?.query?.['sortDirection'] as 'asc' | 'desc';
+      const priorityParam = _req?.query?.['priority'] as ('low' | 'medium' | 'high')[];
 
       // Validate that sortBy is a valid key of Task interface
       const validSortKeys: (keyof import('../types').Task)[] = ['id', 'order', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt'];
@@ -15,7 +16,7 @@ class TaskController {
         ? (sortByParam as keyof import('../types').Task)
         : undefined;
 
-      const tasks = Task.getAllTasks({ sortBy, sortDirection: sortDirectionParam });
+      const tasks = Task.getAllTasks({ sortBy, sortDirection: sortDirectionParam, priority: priorityParam });
       res.json(tasks);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

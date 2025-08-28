@@ -89,8 +89,10 @@ class Task {
     console.log(`[${new Date().toISOString()}] Tasks reset by cron job`);
   }
 
-  public getAllTasks({ sortBy = 'order', sortDirection = 'asc' }: { sortBy?: keyof TaskType | undefined, sortDirection?: 'asc' | 'desc' } = {}): TaskType[] {
-    const tasks = this.tasks;
+  public getAllTasks({ sortBy = 'order', sortDirection = 'asc', priority = [] }: { sortBy?: keyof TaskType | undefined, sortDirection?: 'asc' | 'desc', priority?: ('low' | 'medium' | 'high')[] } = {}): TaskType[] {
+    let tasks = this.tasks;
+
+    tasks = tasks.filter(task => priority.includes(task.priority));
 
     if (!sortBy) {
       return tasks;
