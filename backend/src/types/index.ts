@@ -26,6 +26,7 @@ export interface UpdateTaskRequest {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string;
+  order: number;
 }
 
 export interface MoveTaskRequest {

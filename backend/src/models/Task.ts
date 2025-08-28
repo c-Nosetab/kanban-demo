@@ -1,4 +1,4 @@
-import { Task as TaskType, CreateTaskRequest, UpdateTaskRequest, TaskStatus } from '../types';
+import { Task as TaskType, CreateTaskRequest, UpdateTaskRequest } from '../types';
 
 class Task {
   private tasks: TaskType[] = [];
@@ -6,6 +6,14 @@ class Task {
 
   constructor() {
     this.initializeTasks();
+  }
+
+  private getTaskIndex(id: number): number {
+    const index = this.tasks.findIndex(task => task.id === id);
+    if (index === -1) {
+      throw new Error('Task not found');
+    }
+    return index;
   }
 
   private generateDate(dayDelta: number): string {
@@ -16,25 +24,16 @@ class Task {
 
   private generateTasks(): TaskType[] {
     return [
+      // ! todo
       {
-        id: 5,
-        order: 1,
-        title: "Wow, look at this task!",
-        description: "Click to see the full description. This is a task that is in the in-progress status. Character limits for these are followed, but you can always see the full description details!",
-        status: "in-progress",
-        priority: "low",
-        dueDate: this.generateDate(-20),
-        createdAt: "2025-08-26T10:00:00Z"
-      },
-      {
-        id: 6,
-        order: 2,
-        title: "Medium Todo",
-        description: "This is a task that is in the todo status.",
+        id: 4,
+        order: 0,
+        title: "Drag me to another column!",
+        description: "Check out how the drag and drop works!",
         status: "todo",
-        priority: "medium",
-        dueDate: this.generateDate(60),
-        createdAt: "2025-08-26T10:00:00Z"
+        priority: "low",
+        dueDate: this.generateDate(10),
+        createdAt: "2025-09-03T10:00:00Z"
       },
       {
         id: 1,
@@ -47,6 +46,18 @@ class Task {
         createdAt: "2025-08-26T10:00:00Z"
       },
       {
+        id: 6,
+        order: 2,
+        title: "Medium Todo",
+        description: "This is a task that is in the todo status.",
+        status: "todo",
+        priority: "medium",
+        dueDate: this.generateDate(60),
+        createdAt: "2025-08-26T10:00:00Z"
+      },
+
+      // ! in-progress
+      {
         id: 2,
         order: 0,
         title: "Set up authentication system",
@@ -57,6 +68,17 @@ class Task {
         createdAt: "2025-08-26T11:00:00Z"
       },
       {
+        id: 5,
+        order: 1,
+        title: "Wow, look at this task!",
+        description: "Click to see the full description. This is a task that is in the in-progress status. Character limits for these are followed, but you can always see the full description details!",
+        status: "in-progress",
+        priority: "low",
+        dueDate: this.generateDate(-20),
+        createdAt: "2025-08-26T10:00:00Z"
+      },
+      // ! done
+      {
         id: 3,
         order: 0,
         title: "Deploy to production",
@@ -65,16 +87,6 @@ class Task {
         priority: "low",
         dueDate: this.generateDate(-3),
         createdAt: "2025-08-25T09:00:00Z"
-      },
-      {
-        id: 4,
-        order: 0,
-        title: "Drag me to another column!",
-        description: "Check out how the drag and drop works!",
-        status: "todo",
-        priority: "low",
-        dueDate: this.generateDate(10),
-        createdAt: "2025-09-03T10:00:00Z"
       },
     ];
   }
@@ -164,14 +176,48 @@ class Task {
   }
 
   public updateTask(id: number, updateData: UpdateTaskRequest): TaskType {
-    const taskIndex = this.tasks.findIndex(task => task.id === id);
+    const { status: newStatus, order: newOrder } = updateData;
+    const taskIndex = this.getTaskIndex(id);
+    const taskToUpdate = this.tasks[taskIndex];
 
-    if (taskIndex === -1) {
+    if (!taskToUpdate) {
       throw new Error('Task not found');
     }
 
-    const updatedTask: TaskType = { ...this.tasks[taskIndex], ...updateData } as TaskType;
-    this.tasks[taskIndex] = updatedTask;
+    if (!taskToUpdate) {
+      throw new Error('Task not found');
+    }
+
+    const updateBodies = [];
+
+    if (newStatus !== taskToUpdate.status) {
+      const tasksInPreviousStatus = this.tasks
+        .filter(task => task.status === taskToUpdate.status && task.id !== id)
+        .sort((a, b) => a.order - b.order);
+      const prevUpdateBodies = tasksInPreviousStatus.map((task, i) => ({ ...task, order: i }));
+
+      updateBodies.push(...prevUpdateBodies);
+    }
+
+    const tasksInNewStatus = this.tasks
+      .filter(task => task.status === newStatus && task.id !== id)
+      .sort((a, b) => a.order - b.order);
+    const newUpdateBodies = tasksInNewStatus.map((task, i) => {
+      return {
+        ...task,
+        order: i < newOrder ? i : i + 1,
+      }
+    })
+    updateBodies.push(...newUpdateBodies);
+
+    const updatedTask: TaskType = { ...taskToUpdate, ...updateData };
+    updateBodies.push(updatedTask);
+
+    updateBodies.forEach(task => {
+      const taskIndex = this.getTaskIndex(task.id)
+      this.tasks[taskIndex] = { ...task, ...updateData };
+    });
+
     return updatedTask;
   }
 
@@ -184,14 +230,6 @@ class Task {
 
     this.tasks.splice(taskIndex, 1);
     return true;
-  }
-
-  public moveTask(id: number, status: TaskStatus): TaskType {
-    if (!['todo', 'in-progress', 'done'].includes(status)) {
-      throw new Error('Invalid status');
-    }
-
-    return this.updateTask(id, { status });
   }
 }
 
