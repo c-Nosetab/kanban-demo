@@ -42,7 +42,6 @@ export class Modal implements OnDestroy, OnChanges {
   }
 
   handleConfirm() {
-    console.log('handleConfirm');
     if (this.autoCloseOnConfirm) {
       this.startClosingAnimation();
     }

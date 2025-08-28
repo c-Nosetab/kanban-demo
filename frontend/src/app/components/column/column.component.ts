@@ -43,16 +43,6 @@ export class ColumnComponent {
     const oldStatus = event.previousContainer.data;
     const newStatus = event.container.data;
 
-    console.log('Drop event details:', {
-      taskId,
-      oldStatus,
-      newStatus,
-      oldIndex: event.previousIndex,
-      newIndex: event.currentIndex,
-      previousContainer: event.previousContainer,
-      container: event.container
-    });
-
     this.taskMove.emit({
       taskId: taskId,
       oldIndex: event.previousIndex,

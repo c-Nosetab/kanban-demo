@@ -33,9 +33,9 @@ cronService.initialize();
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🔒 CORS enabled - Allowed origin: ${process.env['FRONTEND_ORIGIN'] || 'http://localhost:4200'}`);
-  console.log(`⏱️  Rate limiting: ${process.env['RATE_LIMIT_MAX_REQUESTS'] || 100} requests per ${Math.ceil((parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000 / 60))} minutes`);
-  console.log(`🔄 Cron job active: Tasks will reset every 20 minutes`);
-  console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
+  console.info(`🚀 Server running on http://localhost:${PORT}`);
+  console.info(`🔒 CORS enabled - Allowed origin: ${process.env['FRONTEND_ORIGIN'] || 'http://localhost:4200'}`);
+  console.info(`⏱️  Rate limiting: ${process.env['RATE_LIMIT_MAX_REQUESTS'] || 100} requests per ${Math.ceil((parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000 / 60))} minutes`);
+  console.info(`🔄 Cron job active: Tasks will reset every 20 minutes`);
+  console.info(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
 });

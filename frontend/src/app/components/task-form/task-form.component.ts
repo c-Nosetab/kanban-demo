@@ -52,12 +52,10 @@ export class TaskFormComponent implements OnInit {
   }
 
   onConfirm(): void {
-    console.log('onConfirm',this.formData);
     this.onSubmit();
   }
 
   onSubmit(): void {
-    console.log(this.formData);
     if (!this.formData.title.trim()) {
       this.error = 'Title is required';
       return;

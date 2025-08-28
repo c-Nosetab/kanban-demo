@@ -38,7 +38,6 @@ export class TaskCardComponent implements OnInit {
   }
 
   handleTaskClick(): void {
-    console.log('Task card clicked:', this.task.title);
     this.taskView.emit(this.task);
   }
 

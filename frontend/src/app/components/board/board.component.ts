@@ -128,7 +128,6 @@ export class BoardComponent implements OnInit {
   }
 
   onViewTask(task: Task): void {
-    console.log('Opening task view for:', task.title);
     this.viewingTask = task;
     this.showTaskView = true;
   }

@@ -17,7 +17,7 @@ class CronService {
       timezone: "UTC"
     });
 
-    console.log('Cron job scheduled: Tasks will reset every 20 minutes');
+    console.info('Cron job scheduled: Tasks will reset every 20 minutes');
     this.isInitialized = true;
   }
 

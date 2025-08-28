@@ -13,10 +13,4 @@ export class App {
   title = 'Task Board Manager';
 
   constructor(private taskService: TaskService) {}
-
-  ngOnInit() {
-    // this.taskService.resetTasks().subscribe(() => {
-    //   console.log('Tasks reset');
-    // })
-  }
 }

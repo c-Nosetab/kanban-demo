@@ -18,7 +18,7 @@ const corsOptions: CorsOptions = {
     if (origin === allowedOrigin) {
       callback(null, true);
     } else {
-      console.log(`Blocked request from unauthorized origin: ${origin}`);
+      console.info(`Blocked request from unauthorized origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -36,7 +36,7 @@ const limiter: RateLimitRequestHandler = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   handler: (req, res) => {
-    console.log(`Rate limit exceeded for IP: ${req.ip}`);
+    console.info(`Rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
       error: process.env['RATE_LIMIT_MESSAGE'] || 'Too many requests from this IP, please try again later.',
       retryAfter: Math.ceil(parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000 / 60) // minutes

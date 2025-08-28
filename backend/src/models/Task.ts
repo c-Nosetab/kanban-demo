@@ -94,7 +94,7 @@ class Task {
 
   public resetTasks(): void {
     this.initializeTasks();
-    console.log(`[${new Date().toISOString()}] Tasks reset by cron job`);
+    console.info(`[${new Date().toISOString()}] Tasks reset by cron job`);
   }
 
   public getAllTasks({ sortBy = 'order', sortDirection = 'asc', priority = [], filterString = '' }:
