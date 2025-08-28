@@ -31,6 +31,7 @@ export interface UpdateTaskRequest {
 
 export interface MoveTaskRequest {
   status: TaskStatus;
+  order: number;
 }
 
 export interface CronStatus {

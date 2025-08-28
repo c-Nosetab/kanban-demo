@@ -154,11 +154,6 @@ export class BoardComponent implements OnInit {
       return;
     }
 
-    const updatedTask: Task = {
-      ...task,
-      // status: ,
-
-    }
     console.log('🚀 - task:', task);
     console.log('Old status:', oldStatus);
     console.log('New status:', newStatus);
@@ -166,7 +161,17 @@ export class BoardComponent implements OnInit {
     console.log('New index:', newIndex);
     console.log('--------------------------------');
 
+
     // TODO: Implement task move functionality
+    this.taskService.moveTask(taskId, task.status, newIndex).subscribe(() => {
+      this.loadTasks();
+
+      this.toastService.addToast({
+        text: 'Task updated successfully!',
+        type: 'success',
+        delayAdd: true,
+      });
+    });
 
   }
 

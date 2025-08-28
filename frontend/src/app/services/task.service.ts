@@ -60,8 +60,8 @@ export class TaskService {
     );
   }
 
-  moveTask(id: number, newStatus: string): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/tasks/${id}/move`, { status: newStatus });
+  moveTask(id: number, newStatus: string, newIndex: number): Observable<Task> {
+    return this.http.put<Task>(`${this.apiUrl}/tasks/${id}/move`, { status: newStatus, order: newIndex });
   }
 
   resetTasks(): Observable<Task[]> {

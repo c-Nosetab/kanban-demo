@@ -78,8 +78,8 @@ class TaskController {
   public moveTask(req: Request<{ id: string }, {}, MoveTaskRequest>, res: Response): void {
     try {
       const taskId = parseInt(req.params.id);
-      const { status } = req.body;
-      const updatedTask = Task.moveTask(taskId, status);
+      const { status, order } = req.body;
+      const updatedTask = Task.moveTask(taskId, status, order);
       res.json(updatedTask);
     } catch (error) {
       if ((error as Error).message === 'Task not found') {
@@ -90,7 +90,7 @@ class TaskController {
         res.status(400).json({ error: (error as Error).message });
         return;
       }
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: (error as Error).message, tasks: (error as any).tasks });
     }
   }
 

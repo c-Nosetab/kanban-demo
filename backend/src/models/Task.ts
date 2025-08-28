@@ -214,8 +214,11 @@ class Task {
   public moveTask(id: number, newStatus: TaskStatus, newOrder: number = 0): TaskType {
     const taskIndex = this.getTaskIndex(id);
 
-    if (!taskIndex) {
-      throw new Error('Task not found');
+    if (taskIndex === -1) {
+      throw {
+        err: new Error(`Task not found top - ${id}`),
+        tasks: this.tasks,
+      };
     }
     const taskToUpdate = this.tasks[taskIndex]!;
 
@@ -252,7 +255,7 @@ class Task {
       const taskIndex = this.getTaskIndex(task.id)
 
       if (taskIndex === -1) {
-        throw new Error('Task not found');
+        throw new Error(`Task not found loop - ${task.title}`);
       }
 
       const taskToUpdate = this.tasks[taskIndex]!;
