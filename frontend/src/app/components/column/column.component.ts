@@ -30,13 +30,30 @@ export class ColumnComponent {
   }
 
   onTaskDrop(event: any): void {
-    const id = event.item.element.nativeElement.id;
-    this.taskMove.emit({
-      taskId: id,
+
+    // Extract task ID from the dragged item
+    const taskId = parseInt(event.item.element.nativeElement.id, 10);
+
+    // Get the status from the container data (now it's the status string)
+    const oldStatus = event.previousContainer.data;
+    const newStatus = event.container.data;
+
+    console.log('Drop event details:', {
+      taskId,
+      oldStatus,
+      newStatus,
       oldIndex: event.previousIndex,
       newIndex: event.currentIndex,
-      oldStatus: event.previousContainer.data,
-      newStatus: event.container.data,
+      previousContainer: event.previousContainer,
+      container: event.container
+    });
+
+    this.taskMove.emit({
+      taskId: taskId,
+      oldIndex: event.previousIndex,
+      newIndex: event.currentIndex,
+      oldStatus: oldStatus,
+      newStatus: newStatus,
     });
   }
 

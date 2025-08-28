@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
@@ -7,15 +7,18 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 import { ToastService } from '../../services/toast.service';
 import { Search } from '../search/search';
 import { CheckboxGroup } from '../checkbox-group/checkbox-group';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search, CheckboxGroup],
+  imports: [CommonModule, ColumnComponent, TaskFormComponent, Search, CheckboxGroup, CdkDropListGroup],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit {
+
   tasks: Task[] = [];
 
   showTaskForm = false;
@@ -151,28 +154,22 @@ export class BoardComponent implements OnInit {
       return Number(task?.id) === Number(taskId);
     });
     if (!task) {
+      console.error('Task not found:', taskId);
       return;
     }
 
-    console.log('🚀 - task:', task);
-    console.log('Old status:', oldStatus);
-    console.log('New status:', newStatus);
-    console.log('Old index:', oldIndex);
-    console.log('New index:', newIndex);
-    console.log('--------------------------------');
 
 
-    // TODO: Implement task move functionality
-    this.taskService.moveTask(taskId, task.status, newIndex).subscribe(() => {
+    // Use newStatus instead of task.status to update the task's status
+    this.taskService.moveTask(taskId, newStatus, newIndex).subscribe(() => {
       this.loadTasks();
 
       this.toastService.addToast({
-        text: 'Task updated successfully!',
+        text: 'Task moved successfully!',
         type: 'success',
         delayAdd: true,
       });
     });
-
   }
 
   onResetTasks(): void {

@@ -7,7 +7,7 @@
   <div
     class="column-content"
     cdkDropList
-    [cdkDropListData]="tasks"
+    [cdkDropListData]="status"
     (cdkDropListDropped)="onTaskDrop($event)"
   >
     @for (task of tasks; track trackByTaskId(task.id!, task)) {
