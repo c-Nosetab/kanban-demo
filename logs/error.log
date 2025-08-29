@@ -1,7 +1,0 @@
-2025/08/27 19:26:33 [error] 17#17: *2 directory index of "/app/frontend/dist/" is forbidden, client: 192.168.65.1, server: _, request: "GET / HTTP/1.1", host: "localhost:8080"
-2025/08/27 19:26:33 [error] 17#17: *2 open() "/app/frontend/dist/favicon.ico" failed (2: No such file or directory), client: 192.168.65.1, server: _, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8080", referrer: "http://localhost:8080/"
-2025/08/27 19:26:52 [error] 17#17: *2 directory index of "/app/frontend/dist/" is forbidden, client: 192.168.65.1, server: _, request: "GET / HTTP/1.1", host: "localhost:8080"
-2025/08/27 19:29:27 [error] 17#17: *3 directory index of "/app/frontend/dist/" is forbidden, client: 192.168.65.1, server: _, request: "GET / HTTP/1.1", host: "localhost:8080"
-2025/08/27 19:29:30 [error] 17#17: *3 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 192.168.65.1, server: _, request: "GET /dashboard HTTP/1.1", host: "localhost:8080"
-2025/08/27 19:29:55 [error] 17#17: *4 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 192.168.65.1, server: _, request: "GET /dashboard HTTP/1.1", host: "localhost:8080"
-2025/08/27 19:30:19 [error] 17#17: *8 directory index of "/app/frontend/dist/" is forbidden, client: 192.168.65.1, server: _, request: "GET / HTTP/1.1", host: "localhost:8080"
