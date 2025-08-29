@@ -1,0 +1,33 @@
+@if (showInstallPrompt) {
+<div class="pwa-install-banner">
+  <div class="install-content">
+    <div class="install-icon">📱</div>
+    <div class="install-text">
+      <h3>Install Kanban App</h3>
+      <p>Get the full experience! Install as an app for offline access and notifications.</p>
+    </div>
+    <div class="install-actions">
+      <button class="install-btn" (click)="installApp()">Install</button>
+      <button class="dismiss-btn" (click)="dismissPrompt()">Maybe Later</button>
+    </div>
+  </div>
+  <button class="close-btn" (click)="dismissPrompt()">×</button>
+</div>
+} @if (showOfflineStatus && !isOnline) {
+<div class="offline-status">
+  <div class="offline-content">
+    <div class="offline-icon">📡</div>
+    <div class="offline-text">
+      <span>You're offline</span>
+      <small>Changes will sync when you reconnect</small>
+    </div>
+  </div>
+</div>
+} @if (isStandalone) {
+<div class="pwa-status">
+  <div class="pwa-content">
+    <div class="pwa-icon">✨</div>
+    <span>Running as installed app</span>
+  </div>
+</div>
+}

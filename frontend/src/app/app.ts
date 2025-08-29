@@ -3,23 +3,29 @@ import { RouterOutlet } from '@angular/router';
 import { TaskService } from './services/task.service';
 import { Toast } from './components/toast/toast.component';
 import { EnvironmentService } from './services/environment.service';
+import { PWAInstallComponent } from './components/pwa-install/pwa-install.component';
+import { PWAService } from './services/pwa.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Toast],
+  imports: [RouterOutlet, Toast, PWAInstallComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
-  title = 'Task Board Manager';
+  title = 'Chris Bateson\'s Kanban';
 
   constructor(
     private taskService: TaskService,
-    private environmentService: EnvironmentService
+    private environmentService: EnvironmentService,
+    private pwaService: PWAService
   ) {}
 
   ngOnInit(): void {
     // Log environment configuration for verification
     this.environmentService.logEnvironmentInfo();
+
+    // Initialize PWA features
+    // PWAService constructor automatically handles initialization
   }
 }
