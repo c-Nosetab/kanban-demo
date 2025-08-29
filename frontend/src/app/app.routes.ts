@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
-import { BoardComponent } from './components/board/board.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: BoardComponent },
+  { 
+    path: 'dashboard', 
+    loadComponent: () => import('./components/board/board.component').then(m => m.BoardComponent)
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];
