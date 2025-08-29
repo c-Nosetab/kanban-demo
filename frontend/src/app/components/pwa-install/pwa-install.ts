@@ -7,8 +7,8 @@ import { Subject, takeUntil } from 'rxjs';
   selector: 'app-pwa-install',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './pwa-install.component.html',
-  styleUrls: ['./pwa-install.component.scss']
+  templateUrl: './pwa-install.html',
+  styleUrls: ['./pwa-install.scss']
 })
 export class PWAInstallComponent implements OnInit, OnDestroy {
   showInstallPrompt = false;

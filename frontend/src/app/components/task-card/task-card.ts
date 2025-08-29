@@ -9,8 +9,8 @@ import { Modal } from '../modal/modal';
   selector: 'app-task-card',
   standalone: true,
   imports: [CommonModule, Modal],
-  templateUrl: './task-card.component.html',
-  styleUrls: ['./task-card.component.scss']
+  templateUrl: './task-card.html',
+  styleUrls: ['./task-card.scss']
 })
 export class TaskCardComponent implements OnInit {
   @Input() task!: Task;

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TaskService } from './services/task.service';
-import { Toast } from './components/toast/toast.component';
+import { Toast } from './components/toast/toast';
 import { EnvironmentService } from './services/environment.service';
-import { PWAInstallComponent } from './components/pwa-install/pwa-install.component';
+import { PWAInstallComponent } from './components/pwa-install/pwa-install';
 import { PWAService } from './services/pwa.service';
 
 @Component({

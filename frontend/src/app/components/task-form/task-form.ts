@@ -9,8 +9,8 @@ import { Modal } from '../modal/modal';
   selector: 'app-task-form',
   standalone: true,
   imports: [CommonModule, FormsModule, Modal],
-  templateUrl: './task-form.component.html',
-  styleUrls: ['./task-form.component.scss']
+  templateUrl: './task-form.html',
+  styleUrls: ['./task-form.scss']
 })
 export class TaskFormComponent implements OnInit {
   @Input() task: Task | null = null;
