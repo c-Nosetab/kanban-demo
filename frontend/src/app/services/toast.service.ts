@@ -36,6 +36,13 @@ export class ToastService {
   private _toast = new BehaviorSubject<SetToastObject | undefined>(undefined);
   public readonly newToast = this._toast.asObservable();
 
+  private _showToasts = new BehaviorSubject<boolean>(false);
+  public readonly showToasts$ = this._showToasts.asObservable();
+
+  showToasts = () => {
+    this._showToasts.next(true);
+  }
+
   addToast = (toast: SetToastObject) => {
     if (toast.type === undefined) toast.type = 'success';
     if (toast.icon === undefined) toast.icon = true;

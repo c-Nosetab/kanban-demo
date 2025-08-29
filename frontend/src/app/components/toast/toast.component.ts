@@ -1,3 +1,4 @@
+import { LoremIpsum } from 'lorem-ipsum';
 import { Component, Input, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { ToastService, SetToastObject } from '../../services/toast.service';
@@ -25,6 +26,13 @@ export class Toast implements OnInit, OnDestroy {
   bottom = 24;
   gap = 10;
 
+  lorem = new LoremIpsum({
+    wordsPerSentence: {
+      max: 10,
+      min: 5
+    }
+  })
+
   animationInDuration = 1.5;
   animationOutDuration = 1;
   toastHoldDuration = 2;
@@ -39,6 +47,7 @@ export class Toast implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private subscription: Subscription = new Subscription();
+  private showToastsSubscription: Subscription = new Subscription();
 
   constructor(private toastService: ToastService) {}
 
@@ -59,10 +68,11 @@ export class Toast implements OnInit, OnDestroy {
         }, 0);
       })
 
-    // NOTE - uncomment this to test toasts
-    setTimeout(() => {
-      this.testToast();
-    }, 500);
+    this.showToastsSubscription = this.toastService.showToasts$.subscribe((showToasts) => {
+      if (showToasts) {
+        this.testToast();
+      }
+    })
 
     this.buttonSubject.pipe(
       distinctUntilChanged(),
@@ -82,7 +92,7 @@ export class Toast implements OnInit, OnDestroy {
     gsap.set(this.button, {
       y: 100,
     })
-    this.toastContainer = document.querySelector('.toast-container') as HTMLElement;
+    this.toastContainer = document.querySelector('.toast-container-inner') as HTMLElement;
   }
 
   ngOnDestroy() {
@@ -130,29 +140,65 @@ export class Toast implements OnInit, OnDestroy {
         el: el,
         height: el.clientHeight,
         width: el.clientWidth,
+        bottom: el.getBoundingClientRect().bottom,
+        top: el.getBoundingClientRect().top,
         y: Number(gsap.getProperty(el, 'y')),
       }
     });
   }
 
-  addToast() {
+  private getMaxY() {
+    const toasts = this.getToastAttrs();
+    const filteredToasts = toasts.filter(t => t?.el)
+
+    const highestY = Math.max(...filteredToasts.map((toast, i) => {
+      const height = toast?.height || 0;
+
+      const y = Math.abs(toast?.y || 0) + height + (this.gap * i) + 100 + this.bottom;
+      return y;
+    }));
+
+    return Math.floor(highestY);
+  }
+
+  private getNextY() {
+    const toasts = this.getToastAttrs();
+    const filteredToasts = toasts.filter(t => t?.el)
+
+    if (filteredToasts.length === 1) return 0;
+
+    return filteredToasts.reduce((acc, toast, i) => {
+      if (i === filteredToasts.length - 1) return acc;
+      return acc + (toast?.height || 0) + this.gap;
+    }, 0)
+  }
+
+  private finishTweens() {
+    const tweens = gsap.getTweensOf(document.querySelectorAll('.toast'));
+    tweens.forEach(tween => {
+      tween.progress(1);
+    })
+    this.clearTimeout();
+  }
+
+
+  async addToast() {
     const toasts = this.getToastAttrs();
     const newToast = toasts?.[this.toasts.length - 1];
     if (!newToast) return;
 
     this.clearTimeout();
 
-    const topToast = toasts[toasts.length - 2];
-    const topGsapY = Math.abs(topToast?.y || 0);
+    const topGsapY = this.getNextY();
 
-    const newToastHeight = newToast.height!;
     const newToastWidth = newToast.width!;
 
-    const yTarget = topToast ? topGsapY + newToastHeight + this.gap : 0;
+    const yTarget = toasts.length === 1 ? 0 : topGsapY;
 
     gsap.set(newToast.el, {
       y: -yTarget,
       x: -newToastWidth - this.left - 50,
+      display: 'flex',
     });
 
     gsap.to(newToast.el, {
@@ -172,7 +218,7 @@ export class Toast implements OnInit, OnDestroy {
   }
 
   removeToast() {
-    this.clearTimeout();
+    this.finishTweens();
 
     const toasts = this.getToastAttrs();
 
@@ -246,7 +292,6 @@ export class Toast implements OnInit, OnDestroy {
         y: 0,
         duration: 1.4,
         ease: 'back.inOut',
-        delay: 3,
       })
     }
 
@@ -256,7 +301,6 @@ export class Toast implements OnInit, OnDestroy {
       y: 100,
       duration: 0.8,
       ease: 'back.inOut',
-      delay: 0.,
       onComplete: () => {
       }
     })
@@ -265,23 +309,19 @@ export class Toast implements OnInit, OnDestroy {
   removeAllToasts() {
     const toasts = this.getToastAttrs();
 
-    this.clearTimeout();
+    this.finishTweens();
+
     const filteredToasts = toasts.filter(t => t?.el)
     const toastElements = filteredToasts.map(t => t?.el)
-    gsap.killTweensOf(toastElements);
 
-
-    const highestToast = Math.max(...filteredToasts.map((toast, i) => {
-      const height = toast?.height || 0;
-      const y = Math.abs(toast?.y || 0) + height + (this.gap * i) + 100 + this.bottom + 10;
-      return y;
-    }));
+    const highestToast = this.getMaxY() + 10;
 
     gsap.to(toastElements, {
       y: highestToast,
-      duration: this.animationOutDuration*2,
+      duration: this.animationOutDuration*1.5,
       ease: this.easeType,
-      stagger: 0.05,
+      stagger: 0.06,
+      // delay: 0.2,
       onComplete: () => {
         this.toasts = [];
       }
@@ -297,33 +337,26 @@ export class Toast implements OnInit, OnDestroy {
   // #region Test Toast
 
   testToast() {
-    const delay = 1000;
-    const startingIndex = 0
-    setTimeout(() => {
-      this.toastService.addToast({
-        text: 'Loading ... 1',
-        type: 'success',
-        icon: true,
-      })
-    }, delay * startingIndex)
+    this.finishTweens();
 
-    setTimeout(() => {
-      this.toastService.addToast({
-        text: 'Loading ... 2',
-        type: 'info',
-        icon: true,
-      })
-    }, delay * (startingIndex + 1))
-    setTimeout(() => {
-      this.toastService.addToast({
-        text: 'Loading ... 3', type: 'warn', icon: true,
-      })
-    }, delay * (startingIndex + 2))
-    setTimeout(() => {
-      this.toastService.addToast({
-        text: 'Loading... 4', type: 'error', icon: true,
-      })
-    }, delay * (startingIndex + 3))
+    const delay = 500;
+    const startingIndex = 0;
+    const howMany = Math.floor(Math.random() * 4) + 1; // 1-4
+
+    const type = ['success', 'warn', 'error', 'info'] as ('success' | 'warn' | 'error' | 'info')[];
+
+
+    for (let i = 0; i < howMany; i++) {
+      const modInd = i % 4;
+      const shuffledType = [...type].sort(() => Math.random() - 0.5);
+      setTimeout(() => {
+        this.toastService.addToast({
+          text: this.lorem.generateSentences(1),
+          type: shuffledType[modInd],
+          icon: true,
+        })
+      }, delay * (startingIndex + i))
+    }
   }
 
   // #endregion Test Toast

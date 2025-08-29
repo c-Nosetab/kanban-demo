@@ -21,18 +21,28 @@ $error-dark-color: #af2f0d;
 
 /* Main toast component */
 .toast-container {
-  position: fixed;
-  z-index: 9999;
+  position: absolute;
+  pointer-events: none;
+  z-index: 9000;
   bottom: 0;
   left: 0;
   right: 0;
+  height: 100%;
+  width: 100%;
 }
 
+.toast-container-inner {
+  // pointer-events: none;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
 
 .toast {
   /* Positioning and layout */
-  position: fixed;
+  position: absolute;
   z-index: 9999;
+  display: none;
 
   /* Sizing and spacing */
   max-width: 322px;

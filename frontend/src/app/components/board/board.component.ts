@@ -305,33 +305,27 @@ export class BoardComponent implements OnInit {
     }
   }
 
-  onTaskMoved({ taskId, newIndex, newStatus }: { taskId: number, newIndex: number, newStatus: string }): void {
-    const currentTasks = this.tasks$.value;
-    const taskIndex = currentTasks.findIndex(task => task.id === taskId);
-
-    if (taskIndex === -1) {
-      this.toastService.addToast({
-        text: `Task not found: ${taskId}`,
-        type: 'error',
-        delayAdd: false,
-      });
-      return;
-    }
-
-    const updatedTasks = [...currentTasks];
-    updatedTasks[taskIndex] = {
-      ...updatedTasks[taskIndex],
-      status: newStatus as 'todo' | 'in-progress' | 'done',
-      order: newIndex,
-    };
-    this.tasks$.next(updatedTasks);
-
-    this.taskService.moveTask(taskId, newStatus, newIndex).subscribe(() => {
-      this.toastService.addToast({
-        text: 'Task moved successfully!',
-        type: 'success',
-        delayAdd: true,
-      });
+  onTaskMoved({ taskId, newIndex, newStatus, oldIndex }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number }): void {
+    // Don't do optimistic updates - let the backend handle the reordering
+    // and then reload to get the correct state
+    this.taskService.moveTask(taskId, newStatus, newIndex).subscribe({
+      next: () => {
+        this.toastService.addToast({
+          text: 'Task moved successfully!',
+          type: 'success',
+          delayAdd: true,
+        });
+        this.loadTasks();
+      },
+      error: (error) => {
+        this.toastService.addToast({
+          text: `Failed to move task: ${error.message}`,
+          type: 'error',
+          delayAdd: false,
+        });
+        // Reload tasks to restore correct state
+        this.loadTasks();
+      }
     });
   }
 
@@ -384,13 +378,17 @@ export class BoardComponent implements OnInit {
   }
 
   toggleSortDirection(): void {
-    const newDirection = this.curSortDirection === 'asc' ? 'desc' : 'asc';
+    const newDirection = this.selectedSortDirection === 'asc' ? 'desc' : 'asc';
     this.filters$.next({
       ...this.filters$.value,
       sortDirection: newDirection,
     });
   }
   // #endregion Search and Filter Events
+
+  showToasts(): void {
+    this.toastService.showToasts();
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();

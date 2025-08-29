@@ -44,9 +44,9 @@
             }
           </div>
           <div class="direction-options" (click)="toggleSortDirection()">
-            <p [class.selected]="curSortDirection === 'asc'">ASC</p>
+            <p [class.selected]="selectedSortDirection === 'asc'">ASC</p>
             <p>/</p>
-            <p [class.selected]="curSortDirection === 'desc'">DESC</p>
+            <p [class.selected]="selectedSortDirection === 'desc'">DESC</p>
           </div>
         </div>
 
@@ -110,5 +110,8 @@
   </app-task-view>
   }
 
-  <button class="reset-tasks-btn" (click)="onResetTasks()">Reset Tasks</button>
+  <div class="reset-tasks-btn-container">
+    <button class="demo-btn" (click)="showToasts()">Demo Toast Notifications</button>
+    <button class="demo-btn" (click)="onResetTasks()">Reset Tasks</button>
+  </div>
 </div>
