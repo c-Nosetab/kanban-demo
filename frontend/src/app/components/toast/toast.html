@@ -1,19 +1,27 @@
-@for (toast of toasts.reverse(); track toast._?.id) {
-<div
-  #elementToCheck
-  [id]="toast._?.id"
-  [ngClass]="[
-    'toast',
-    toast.type,
-    toast.style,
-    toast.outline ? 'outline' : '',
-    toast.dark ? 'dark' : ''
-  ]"
->
-  @if (toast.icon) {
-  <mat-icon fontSet="material-icons-round" class="toast-icon">{{ toast.icon }}</mat-icon>
+<button class="remove-all-toasts" (click)="removeAllToasts()" [style.left]="left + 'px'">
+  Remove all toasts
+</button>
+<div class="toast-container">
+  @for (toast of toasts.reverse(); track toast._?.id) {
+
+  <div
+    #elementToCheck
+    [id]="toast._?.id"
+    [ngClass]="[
+      'toast',
+      toast.type,
+      toast.style,
+      toast.outline ? 'outline' : '',
+      toast.dark ? 'dark' : ''
+    ]"
+    [style.bottom]="bottom + 'px'"
+    [style.left]="left + 'px'"
+  >
+    @if (toast.icon) {
+    <mat-icon fontSet="material-icons-round" class="toast-icon">{{ toast.icon }}</mat-icon>
+    }
+    <span class="klabel-huge">{{ toast.text }}</span>
+    <span class="klabel-huge full-text">{{ toast.text }}</span>
+  </div>
   }
-  <span class="klabel-huge">{{ toast.text }}</span>
-  <span class="klabel-huge full-text">{{ toast.text }}</span>
 </div>
-}

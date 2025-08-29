@@ -111,12 +111,7 @@ export class BoardComponent implements OnInit {
   // #region Load and Process Tasks
   loadTasks(): void {
     // Load all tasks with default parameters to get everything
-    this.taskService.getTasks({
-      sortBy: 'order',
-      sortDirection: 'asc',
-      priority: ['low', 'medium', 'high'], // Get all priorities
-      filterString: ''
-    }).subscribe((tasks) => {
+    this.taskService.getTasks().subscribe((tasks) => {
       this.tasks$.next(tasks);
     });
   }

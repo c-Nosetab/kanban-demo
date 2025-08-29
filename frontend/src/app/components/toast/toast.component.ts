@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { ToastService, SetToastObject } from '../../services/toast.service';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, Subject, Subscription, takeUntil } from 'rxjs';
 import gsap from 'gsap';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -14,6 +14,12 @@ import { MatIconModule } from '@angular/material/icon';
 export class Toast implements OnInit, OnDestroy {
   toasts: SetToastObject[] = [];
   toastTimeout: any = null;
+
+  buttonSubject = new Subject<boolean>();
+  buttonPresent$ = new BehaviorSubject<boolean>(false);
+  get buttonPresent() {
+    return this.buttonPresent$.getValue();
+  }
 
   left = 24;
   bottom = 24;
@@ -28,6 +34,10 @@ export class Toast implements OnInit, OnDestroy {
 
   removalRunning = false;
 
+  button: HTMLElement | null = null;
+  toastContainer: HTMLElement | null = null;
+
+  private destroy$ = new Subject<void>();
   private subscription: Subscription = new Subscription();
 
   constructor(private toastService: ToastService) {}
@@ -50,11 +60,35 @@ export class Toast implements OnInit, OnDestroy {
       })
 
     // NOTE - uncomment this to test toasts
-    // this.testToast();
+    setTimeout(() => {
+      this.testToast();
+    }, 500);
+
+    this.buttonSubject.pipe(
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe((present) => {
+      this.buttonPresent$.next(present);
+    })
+
+    this.buttonPresent$.subscribe((present) => {
+      if (present) this.enterButton();
+      else this.exitButton();
+    })
+  }
+
+  ngAfterViewInit() {
+    this.button = document.querySelector('.remove-all-toasts') as HTMLElement;
+    gsap.set(this.button, {
+      y: 100,
+    })
+    this.toastContainer = document.querySelector('.toast-container') as HTMLElement;
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // #region Timeout Handlers
@@ -129,6 +163,12 @@ export class Toast implements OnInit, OnDestroy {
         this.setToastTimeout();
       }
     });
+
+    if (this.toasts.length > 1) {
+      this.buttonSubject.next(true);
+    }
+
+
   }
 
   removeToast() {
@@ -153,8 +193,13 @@ export class Toast implements OnInit, OnDestroy {
       }
     })
 
+    if (!secondToast) {
+      return
+    };
 
-    if (!secondToast) return;
+    if (toasts.length <= 2) {
+      this.buttonSubject.next(false);
+    }
 
     const secondY = secondToast.y;
 
@@ -173,12 +218,86 @@ export class Toast implements OnInit, OnDestroy {
     })
   }
 
+  enterButton() {
+    if (!(this.button instanceof HTMLElement)) return;
+
+    if (this.toastContainer instanceof HTMLElement) {
+      gsap.to(this.toastContainer, {
+        y: "-=30",
+        duration: 1,
+        ease: 'back.inOut',
+        delay: 0,
+      })
+    }
+
+    gsap.to(this.button, {
+      y: 0,
+      duration: 0.8,
+      ease: 'back.out',
+      delay: 0.12,
+    })
+
+    this.buttonSubject.next(true);
+  }
+
+  exitButton() {
+    if (this.toastContainer instanceof HTMLElement) {
+      gsap.to(this.toastContainer, {
+        y: 0,
+        duration: 1.4,
+        ease: 'back.inOut',
+        delay: 3,
+      })
+    }
+
+    if (this.buttonPresent) return;
+
+    gsap.to(this.button, {
+      y: 100,
+      duration: 0.8,
+      ease: 'back.inOut',
+      delay: 0.,
+      onComplete: () => {
+      }
+    })
+  }
+
+  removeAllToasts() {
+    const toasts = this.getToastAttrs();
+
+    this.clearTimeout();
+    const filteredToasts = toasts.filter(t => t?.el)
+    const toastElements = filteredToasts.map(t => t?.el)
+    gsap.killTweensOf(toastElements);
+
+
+    const highestToast = Math.max(...filteredToasts.map((toast, i) => {
+      const height = toast?.height || 0;
+      const y = Math.abs(toast?.y || 0) + height + (this.gap * i) + 100 + this.bottom + 10;
+      return y;
+    }));
+
+    gsap.to(toastElements, {
+      y: highestToast,
+      duration: this.animationOutDuration*2,
+      ease: this.easeType,
+      stagger: 0.05,
+      onComplete: () => {
+        this.toasts = [];
+      }
+    })
+
+    this.buttonSubject.next(false);
+  }
+
+
+
   // #endregion Toast Handlers
 
   // #region Test Toast
 
   testToast() {
-    const delay = 2000;
+    const delay = 1000;
     const startingIndex = 0
     setTimeout(() => {
       this.toastService.addToast({

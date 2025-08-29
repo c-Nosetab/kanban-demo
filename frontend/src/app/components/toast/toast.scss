@@ -20,11 +20,18 @@ $error-dark-bg: #2d201c;
 $error-dark-color: #af2f0d;
 
 /* Main toast component */
+.toast-container {
+  position: fixed;
+  z-index: 9999;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+
 .toast {
   /* Positioning and layout */
   position: fixed;
-  left: 24px;
-  bottom: 24px;
   z-index: 9999;
 
   /* Sizing and spacing */
@@ -144,5 +151,26 @@ $error-dark-color: #af2f0d;
         display: block;
       }
     }
+  }
+}
+
+.remove-all-toasts {
+  position: fixed;
+  bottom: 10px;
+  z-index: 9999;
+  background: none;
+  border: none;
+  color: #005965;
+  cursor: pointer;
+
+  border: 1px solid #005965;
+  border-radius: 4px;
+  padding: 4px 8px;
+
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #005965;
+    color: white;
   }
 }
