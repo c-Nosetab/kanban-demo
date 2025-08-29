@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener, AfterViewInit, ChangeDetectionStrategy
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
+import { PWAService } from '../../services/pwa.service';
 import { ColumnComponent } from '../column/column';
 import { TaskFormComponent } from '../task-form/task-form';
 import { TaskViewComponent } from '../task-view/task-view';
@@ -90,7 +91,8 @@ export class BoardComponent implements OnInit {
 
   constructor(
     private taskService: TaskService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private pwaService: PWAService
   ) {}
 
   ngOnInit(): void {
@@ -306,15 +308,10 @@ export class BoardComponent implements OnInit {
   }
 
   onTaskMoved({ taskId, newIndex, newStatus, oldIndex }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number }): void {
-    // Don't do optimistic updates - let the backend handle the reordering
-    // and then reload to get the correct state
     this.taskService.moveTask(taskId, newStatus, newIndex).subscribe({
       next: () => {
-        this.toastService.addToast({
-          text: 'Task moved successfully!',
-          type: 'success',
-          delayAdd: true,
-        });
+        // Only show success toast and reload for online operations
+        // Offline operations already show their own toast from TaskService
         this.loadTasks();
       },
       error: (error) => {
@@ -337,6 +334,9 @@ export class BoardComponent implements OnInit {
       sortBy: 'order',
       sortDirection: 'asc',
     });
+
+    // Clear any pending offline actions since we're resetting all tasks
+    this.pwaService.clearAllPendingActions();
 
     this.taskService.resetTasks().subscribe((tasks) => {
       this.tasks$.next(tasks);

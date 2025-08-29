@@ -15,8 +15,10 @@ export class PWAInstallComponent implements OnInit, OnDestroy {
   showOfflineStatus = true;
   isOnline = navigator.onLine;
   isStandalone = false;
+  offlineStatusFadeOut = false;
 
   private destroy$ = new Subject<void>();
+  private offlineTimeout: any;
 
   constructor(private pwaService: PWAService) {}
 
@@ -34,12 +36,43 @@ export class PWAInstallComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((isOnline) => {
         this.isOnline = isOnline;
+        
+        // When going offline, show status and set auto-hide timer
+        if (!isOnline) {
+          this.showOfflineStatus = true;
+          this.offlineStatusFadeOut = false;
+          this.clearOfflineTimeout();
+          this.offlineTimeout = setTimeout(() => {
+            this.hideOfflineStatus();
+          }, 3000); // Hide after 3 seconds
+        } else {
+          // When back online, hide immediately
+          this.clearOfflineTimeout();
+          this.hideOfflineStatus();
+        }
       });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearOfflineTimeout();
+  }
+
+  private clearOfflineTimeout(): void {
+    if (this.offlineTimeout) {
+      clearTimeout(this.offlineTimeout);
+      this.offlineTimeout = null;
+    }
+  }
+
+  hideOfflineStatus(): void {
+    this.offlineStatusFadeOut = true;
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      this.showOfflineStatus = false;
+      this.offlineStatusFadeOut = false;
+    }, 300); // Match CSS animation duration
   }
 
   async installApp(): Promise<void> {

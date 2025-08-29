@@ -89,9 +89,11 @@ export class Toast implements OnInit, OnDestroy {
 
   ngAfterViewInit() {
     this.button = document.querySelector('.remove-all-toasts') as HTMLElement;
-    gsap.set(this.button, {
-      y: 100,
-    })
+    if (this.button) {
+      gsap.set(this.button, {
+        y: 100,
+      });
+    }
     this.toastContainer = document.querySelector('.toast-container-inner') as HTMLElement;
   }
 
@@ -297,13 +299,15 @@ export class Toast implements OnInit, OnDestroy {
 
     if (this.buttonPresent) return;
 
-    gsap.to(this.button, {
-      y: 100,
-      duration: 0.8,
-      ease: 'back.inOut',
-      onComplete: () => {
-      }
-    })
+    if (this.button) {
+      gsap.to(this.button, {
+        y: 100,
+        duration: 0.8,
+        ease: 'back.inOut',
+        onComplete: () => {
+        }
+      });
+    }
   }
 
   removeAllToasts() {

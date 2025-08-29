@@ -115,10 +115,14 @@ export class OfflineStorageService {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['offlineActions'], 'readonly');
       const store = transaction.objectStore('offlineActions');
-      const index = store.index('synced');
-      const request = index.getAll(IDBKeyRange.only(false));
       
-      request.onsuccess = () => resolve(request.result || []);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const allActions = request.result;
+        const pendingActions = allActions.filter(action => !action.synced);
+        console.log(`[Offline Storage] Total actions: ${allActions.length}, Pending: ${pendingActions.length}`);
+        resolve(pendingActions);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -142,15 +146,71 @@ export class OfflineStorageService {
   async clearSyncedActions(): Promise<void> {
     if (!this.db) await this.initialize();
     
-    const transaction = this.db!.transaction(['offlineActions'], 'readwrite');
-    const store = transaction.objectStore('offlineActions');
-    const index = store.index('synced');
-    const request = index.getAllKeys(IDBKeyRange.only(true));
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['offlineActions'], 'readwrite');
+      const store = transaction.objectStore('offlineActions');
+      
+      // Get all actions first
+      const getAllRequest = store.getAll();
+      getAllRequest.onsuccess = () => {
+        const allActions = getAllRequest.result;
+        let deleteCount = 0;
+        let totalDeletes = 0;
+        
+        // Count actions to delete
+        allActions.forEach(action => {
+          if (action.synced === true) {
+            totalDeletes++;
+          }
+        });
+        
+        if (totalDeletes === 0) {
+          resolve();
+          return;
+        }
+        
+        // Delete synced actions
+        allActions.forEach(action => {
+          if (action.synced === true) {
+            const deleteRequest = store.delete(action.id);
+            deleteRequest.onsuccess = () => {
+              deleteCount++;
+              if (deleteCount === totalDeletes) {
+                resolve();
+              }
+            };
+            deleteRequest.onerror = () => reject(deleteRequest.error);
+          }
+        });
+      };
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+  }
+
+  async clearAllActions(): Promise<void> {
+    if (!this.db) await this.initialize();
     
-    request.onsuccess = () => {
-      const keys = request.result;
-      keys.forEach(key => store.delete(key));
-    };
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['offlineActions'], 'readwrite');
+      const store = transaction.objectStore('offlineActions');
+      
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = () => resolve();
+      clearRequest.onerror = () => reject(clearRequest.error);
+    });
+  }
+
+  async clearAllTasks(): Promise<void> {
+    if (!this.db) await this.initialize();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['tasks'], 'readwrite');
+      const store = transaction.objectStore('tasks');
+      
+      const clearRequest = store.clear();
+      clearRequest.onsuccess = () => resolve();
+      clearRequest.onerror = () => reject(clearRequest.error);
+    });
   }
 
   // Utility methods

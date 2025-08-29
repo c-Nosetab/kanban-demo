@@ -14,7 +14,7 @@
   <button class="close-btn" (click)="dismissPrompt()">×</button>
 </div>
 } @if (showOfflineStatus && !isOnline) {
-<div class="offline-status">
+<div class="offline-status" [class.fade-out]="offlineStatusFadeOut">
   <div class="offline-content">
     <div class="offline-icon">📡</div>
     <div class="offline-text">
@@ -22,6 +22,7 @@
       <small>Changes will sync when you reconnect</small>
     </div>
   </div>
+  <button class="offline-close-btn" (click)="hideOfflineStatus()" title="Dismiss">×</button>
 </div>
 } @if (isStandalone) {
 <div class="pwa-status">
