@@ -21,7 +21,7 @@ $error-dark-color: #af2f0d;
 
 /* Main toast component */
 .toast-container {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
   z-index: 9000;
   bottom: 0;

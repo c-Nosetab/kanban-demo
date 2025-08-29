@@ -187,8 +187,12 @@ class Task {
       newOrder = maxOrder + 1;
     }
 
+    // Generate a unique ID
+    const maxId = this.tasks.length > 0 ? Math.max(...this.tasks.map(task => task.id)) : 0;
+    const newId = maxId + 1;
+
     const newTask: TaskType = {
-      id: this.tasks.length + 1,
+      id: newId,
       order: newOrder,
       title,
       description: description || '',
@@ -199,6 +203,9 @@ class Task {
     };
 
     this.tasks.push(newTask);
+    this.taskMap.set(newId, newTask);
+    this.statusGroups.get('todo')?.add(newId);
+    
     return newTask;
   }
 
@@ -215,6 +222,10 @@ class Task {
     }
 
     const updatedTask: TaskType = { ...taskToUpdate, ...updateData };
+    
+    // Update the task in the array and rebuild indices
+    this.tasks[taskIndex] = updatedTask;
+    this.taskMap.set(id, updatedTask);
 
     return updatedTask;
   }
@@ -226,6 +237,12 @@ class Task {
       throw new Error('Task not found');
     }
 
+    const task = this.tasks[taskIndex]!;
+    
+    // Remove from indices
+    this.taskMap.delete(id);
+    this.statusGroups.get(task.status)?.delete(id);
+    
     this.tasks.splice(taskIndex, 1);
     return true;
   }

@@ -234,7 +234,7 @@ export class BoardComponent implements OnInit {
 
   // #region Task Events
   onAddTask(): void {
-    this.editingTask = {} as Task;
+    this.editingTask = null as any;
     this.showTaskForm = true;
   }
 
@@ -250,7 +250,7 @@ export class BoardComponent implements OnInit {
 
   onTaskFormClose(): void {
     this.showTaskForm = false;
-    this.editingTask = {} as Task;
+    this.editingTask = null as any;
   }
 
   onTaskViewClose(): void {
@@ -261,7 +261,7 @@ export class BoardComponent implements OnInit {
   onTaskSaved(newTaskId: number | null): void {
     this.showTaskForm = false;
     const currentEditingTask = this.editingTask;
-    this.editingTask = {} as Task;
+    this.editingTask = null as any;
 
     if (newTaskId) {
       this.taskService.getTaskById(newTaskId).subscribe((task) => {

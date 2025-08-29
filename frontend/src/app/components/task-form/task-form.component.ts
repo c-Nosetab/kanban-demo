@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task } from '../../models/task.interface';
@@ -21,7 +21,8 @@ export class TaskFormComponent implements OnInit {
   isOpen = true;
   confirmText = 'Save';
   cancelText = 'Cancel';
-  isLoading = true;
+  isLoading = false;
+  minDate = new Date().toISOString().split('T')[0];
 
   formData: Task = {
     title: '',
@@ -34,7 +35,7 @@ export class TaskFormComponent implements OnInit {
 
   error = '';
 
-  constructor(private taskService: TaskService) {}
+  constructor(private taskService: TaskService, private cdr: ChangeDetectorRef) {}
 
   @ViewChild(Modal) modalRef!: Modal;
 
@@ -46,9 +47,13 @@ export class TaskFormComponent implements OnInit {
       }
     }
 
-    setTimeout(() => {
-      this.isLoading = false;
-    }, this.task ? 1000 : 0);
+    if (this.isEditMode) {
+      this.isLoading = true;
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }, 1000);
+    }
   }
 
   onConfirm(): void {
@@ -109,7 +114,7 @@ export class TaskFormComponent implements OnInit {
   }
 
   get isEditMode(): boolean {
-    return this.task !== null;
+    return this.task !== null && this.task.id !== undefined;
   }
 
   get modalTitle(): string {

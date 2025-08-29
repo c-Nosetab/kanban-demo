@@ -11,10 +11,10 @@ class TaskController {
 
     const newData: UpdateTaskRequest = {
       id: 'id' in data ? data.id : -1,
-      title: QueryParser.sanitizeString(data.title, 100),
-      description: QueryParser.sanitizeString(data.description, 1000),
-      priority: QueryParser.parseEnum(data.priority, ['low', 'medium', 'high'], 'medium'),
-      dueDate: data.dueDate ? QueryParser.parseDate(data.dueDate) : null,
+      title: QueryParser.sanitizeString(data?.title, 100),
+      description: QueryParser.sanitizeString(data?.description, 1000),
+      priority: QueryParser.parseEnum(data?.priority, ['low', 'medium', 'high'], 'medium'),
+      dueDate: data?.dueDate ? QueryParser.parseDate(data.dueDate) : null,
       status: QueryParser.parseEnum(data?.status, ['todo', 'in-progress', 'done'], 'todo'),
     }
 
