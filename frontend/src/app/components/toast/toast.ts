@@ -55,7 +55,6 @@ export class Toast implements OnInit, OnDestroy {
     this.subscription = this.toastService.newToast
       .subscribe((toast: SetToastObject | undefined) => {
         if (toast === undefined) return
-
         const id = Math.random().toString(36).substring(2, 11);
         toast._ = {};
         toast._.id = id;
@@ -78,6 +77,9 @@ export class Toast implements OnInit, OnDestroy {
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe((present) => {
+      if (!this.button) {
+        this.button = document.querySelector('.remove-all-toasts') as HTMLElement;
+      }
       this.buttonPresent$.next(present);
     })
 
@@ -89,9 +91,6 @@ export class Toast implements OnInit, OnDestroy {
 
   ngAfterViewInit() {
     this.button = document.querySelector('.remove-all-toasts') as HTMLElement;
-    gsap.set(this.button, {
-      y: 100,
-    })
     this.toastContainer = document.querySelector('.toast-container-inner') as HTMLElement;
   }
 
@@ -210,11 +209,7 @@ export class Toast implements OnInit, OnDestroy {
       }
     });
 
-    if (this.toasts.length > 1) {
-      this.buttonSubject.next(true);
-    }
-
-
+    if (this.toasts.length > 1) this.buttonSubject.next(true);
   }
 
   removeToast() {
@@ -267,6 +262,11 @@ export class Toast implements OnInit, OnDestroy {
   enterButton() {
     if (!(this.button instanceof HTMLElement)) return;
 
+    gsap.set(this.button, {
+      y: 100,
+      display: 'block',
+    })
+
     if (this.toastContainer instanceof HTMLElement) {
       gsap.to(this.toastContainer, {
         y: "-=30",
@@ -295,7 +295,7 @@ export class Toast implements OnInit, OnDestroy {
       })
     }
 
-    if (this.buttonPresent) return;
+    if (this.buttonPresent$.getValue() || !(this.button instanceof HTMLElement)) return;
 
     gsap.to(this.button, {
       y: 100,
