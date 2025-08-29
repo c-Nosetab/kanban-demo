@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
 import { Modal } from '../modal/modal';
-import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-task-form',
@@ -35,7 +34,7 @@ export class TaskFormComponent implements OnInit {
 
   error = '';
 
-  constructor(private taskService: TaskService, private toastService: ToastService) {}
+  constructor(private taskService: TaskService) {}
 
   @ViewChild(Modal) modalRef!: Modal;
 
@@ -77,9 +76,9 @@ export class TaskFormComponent implements OnInit {
             this.taskSaved.emit(null); // No new task ID for updates
           }, 290); // Match modal animation duration
         },
-        error: (error) => {
+        error: () => {
           this.isLoading = false;
-          console.error('Error updating task:', error);
+          // Error is handled globally by ErrorHandlerService
         }
       });
     } else {
@@ -93,9 +92,9 @@ export class TaskFormComponent implements OnInit {
             this.taskSaved.emit(newTask.id || null);
           }, 290); // Match modal animation duration
         },
-        error: (error) => {
+        error: () => {
           this.isLoading = false;
-          console.error('Error creating task:', error);
+          // Error is handled globally by ErrorHandlerService
         }
       });
     }

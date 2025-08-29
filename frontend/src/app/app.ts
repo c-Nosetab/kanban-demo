@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TaskService } from './services/task.service';
 import { Toast } from './components/toast/toast';
+import { EnvironmentService } from './services/environment.service';
 
 @Component({
   selector: 'app-root',
@@ -9,8 +10,16 @@ import { Toast } from './components/toast/toast';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   title = 'Task Board Manager';
 
-  constructor(private taskService: TaskService) {}
+  constructor(
+    private taskService: TaskService,
+    private environmentService: EnvironmentService
+  ) {}
+  
+  ngOnInit(): void {
+    // Log environment configuration for verification
+    this.environmentService.logEnvironmentInfo();
+  }
 }

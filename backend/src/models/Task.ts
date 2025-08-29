@@ -2,10 +2,29 @@ import { Task as TaskType, CreateTaskRequest, UpdateTaskRequest, TaskStatus } fr
 
 class Task {
   private tasks: TaskType[] = [];
-  private nextId: number = 5;
+  private taskMap: Map<number, TaskType> = new Map();
+  private statusGroups: Map<TaskStatus, Set<number>> = new Map();
 
   constructor() {
     this.initializeTasks();
+    this.buildIndices();
+  }
+
+  private buildIndices(): void {
+    this.taskMap.clear();
+    this.statusGroups.clear();
+
+    // init status groups
+    ['todo', 'in-progress', 'done'].forEach(status => {
+      this.statusGroups.set(status as TaskStatus, new Set());
+    });
+
+    // build indices in 0(n)
+    this.tasks.forEach(task => {
+      this.taskMap.set(task.id, task);
+      this.statusGroups.get(task.status)?.add(task.id);
+    });
+
   }
 
   private getTaskIndex(id: number): number {
@@ -89,7 +108,7 @@ class Task {
 
   private initializeTasks(): void {
     this.tasks = this.generateTasks();
-    this.nextId = this.tasks.length + 1;
+    this.buildIndices();
   }
 
   public resetTasks(): void {
@@ -118,7 +137,7 @@ class Task {
         passes = inTitle || inDescription
       }
 
-      return passes && priority.includes(task.priority);
+      return passes && (priority.length === 0 || priority.includes(task.priority));
     })
 
     if (!sortBy) {
@@ -169,7 +188,7 @@ class Task {
     }
 
     const newTask: TaskType = {
-      id: this.nextId++,
+      id: this.tasks.length + 1,
       order: newOrder,
       title,
       description: description || '',
@@ -212,55 +231,21 @@ class Task {
   }
 
   public moveTask(id: number, newStatus: TaskStatus, newOrder: number = 0): TaskType {
-    const taskIndex = this.getTaskIndex(id);
+    const task = this.taskMap.get(id);
+    if (!task) throw new Error(`Task not found: ${id}`);
 
-    if (taskIndex === -1) {
-      throw {
-        err: new Error(`Task not found top - ${id}`),
-        tasks: this.tasks,
-      };
-    }
-    const taskToUpdate = this.tasks[taskIndex]!;
+    const oldStatus = task.status;
 
-
-    const updateBodies = [];
-    if (newStatus !== taskToUpdate.status) {
-      const tasksInPreviousStatus = this.tasks
-        .filter(task => task.status === taskToUpdate.status && task.id !== id)
-        .sort((a, b) => a.order - b.order);
-      const prevUpdateBodies = tasksInPreviousStatus.map((task, i) => ({ ...task, order: i }));
-
-      updateBodies.push(...prevUpdateBodies);
+    if (oldStatus !== newStatus) {
+      this.statusGroups.get(oldStatus)?.delete(id);
+      this.statusGroups.get(newStatus)?.add(id);
     }
 
-    const tasksInNewStatus = this.tasks
-      .filter(task => task.status === newStatus && task.id !== id)
-      .sort((a, b) => a.order - b.order);
-    const newUpdateBodies = tasksInNewStatus.map((task, i) => {
-      return {
-        ...task,
-        order: i < newOrder ? i : i + 1,
-      }
-    })
-    updateBodies.push(...newUpdateBodies);
+    const updatedTask = { ...task, status: newStatus, order: newOrder };
+    this.taskMap.set(id, updatedTask);
 
-    const updatedTask: TaskType = {
-      ...taskToUpdate,
-      status: newStatus,
-      order: newOrder,
-    };
-    updateBodies.push(updatedTask);
-
-    updateBodies.forEach(task => {
-      const taskIndex = this.getTaskIndex(task.id)
-
-      if (taskIndex === -1) {
-        throw new Error(`Task not found loop - ${task.title}`);
-      }
-
-      const taskToUpdate = this.tasks[taskIndex]!;
-      this.tasks[taskIndex] = { ...taskToUpdate, ...task };
-    });
+    const arrayIndex = this.tasks.findIndex(task => task.id === id);
+    this.tasks[arrayIndex] = updatedTask;
 
     return updatedTask;
   }

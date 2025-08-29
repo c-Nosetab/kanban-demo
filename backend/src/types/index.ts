@@ -13,11 +13,13 @@ export type TaskStatus = 'todo' | 'in-progress' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface CreateTaskRequest {
+  id?: number;
   title: string;
   order?: number;
   description?: string;
   priority?: TaskPriority;
-  dueDate?: string;
+  dueDate?: string | null;
+  status?: TaskStatus;
 }
 
 export interface UpdateTaskRequest {
@@ -26,7 +28,7 @@ export interface UpdateTaskRequest {
   title?: string;
   description?: string;
   priority?: TaskPriority;
-  dueDate?: string;
+  dueDate?: string | null;
 }
 
 export interface MoveTaskRequest {

@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import taskController from '../controllers/taskController';
+import taskController from '../controllers/task.controller';
 
 const router = Router();
 
 // GET /api/tasks - Retrieve all tasks
 router.get('/', taskController.getAllTasks);
+
+// GET /api/tasks/:id - Retrieve single task
+router.get('/:id', taskController.getTaskById);
 
 // POST /api/tasks - Create new task
 router.post('/', taskController.createTask);
