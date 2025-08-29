@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, AfterViewInit } from '@angular/core';
+import { Component, OnInit, HostListener, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
@@ -9,28 +9,49 @@ import { ToastService } from '../../services/toast.service';
 import { Search } from '../search/search';
 import { CheckboxGroup } from '../checkbox-group/checkbox-group';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map, Subject, switchMap, takeUntil } from 'rxjs';
 
 
 @Component({
   selector: 'app-board',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, ColumnComponent, TaskFormComponent, TaskViewComponent, Search, CheckboxGroup, CdkDropListGroup],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
 export class BoardComponent implements OnInit {
+  private tasks$ = new BehaviorSubject<Task[]>([]);
+  private filters$ = new BehaviorSubject<{
+    search: string;
+    priorities: string[];
+    sortBy: keyof Task;
+    sortDirection: 'asc' | 'desc';
+  }>({
+    search: '',
+    priorities: ['low', 'medium', 'high'],
+    sortBy: 'order',
+    sortDirection: 'asc'
+  });
 
-  tasks: Task[] = [];
+  columns$ = combineLatest([
+    this.tasks$,
+    this.filters$
+  ]).pipe(
+    map(([tasks, filters]) => this.computeColumns(tasks, filters))
+  );
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   showTaskForm = false;
   showTaskView = false;
-  editingTask: Task | null = null;
-  viewingTask: Task | null = null;
+  editingTask: Task = {} as Task;
+  viewingTask: Task = {} as Task;
   newTaskIds: Set<number> = new Set();
   isSortDropdownOpen = false;
   isFilteringExpanded = false;
   curSortDirection: 'asc' | 'desc' = 'asc';
-  searchValue: string = '';
 
   sortOptions: { id: keyof Task, label: string }[] = [
     { id: 'order', label: 'Order' },
@@ -45,11 +66,27 @@ export class BoardComponent implements OnInit {
     { label: 'Medium', value: 'medium' },
     { label: 'Low', value: 'low' },
   ];
-  selectedPriorityOptions: string[] = [
-    'low',
-    'medium',
-    'high',
-  ];
+
+  get selectedPriorityOptions(): string[] {
+    return this.filters$.value.priorities;
+  }
+
+  get searchValue(): string {
+    return this.filters$.value.search;
+  }
+
+  get selectedSortOption(): keyof Task {
+    return this.filters$.value.sortBy;
+  }
+
+  get selectedSortDirection(): 'asc' | 'desc' {
+    return this.filters$.value.sortDirection;
+  }
+
+  get selectedSortLabel(): string {
+    const selectedOption = this.sortOptions.find(option => option.id === this.filters$.value.sortBy);
+    return selectedOption?.label || 'Order';
+  }
 
   constructor(
     private taskService: TaskService,
@@ -58,32 +95,125 @@ export class BoardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTasks();
-  }
 
-  loadTasks(): void {
-    this.taskService.getTasks({
-      sortOption: this.curSortOption,
-      sortDirection: this.curSortDirection,
-      priorityOptions: this.selectedPriorityOptions,
-      filterString: this.searchValue,
-    })
-      .subscribe({
-        next: (tasks) => {
-        this.tasks = tasks;
-      },
-      error: (error) => {
-        this.toastService.addToast({
-          text: `Error loading tasks: ${error.message}`,
-          type: 'error',
-          delayAdd: false,
-        });
-      }
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe((value: string) => {
+      this.filters$.next({
+        ...this.filters$.value,
+        search: value
+      })
     });
   }
 
-  getTasksByStatus(status: string): Task[] {
-    return this.tasks.filter(task => task.status === status);
+  // #region Load and Process Tasks
+  loadTasks(): void {
+    this.taskService.getTasks().subscribe((tasks) => {
+      this.tasks$.next(tasks);
+    });
   }
+
+  private computeColumns(tasks: Task[], filters: {
+    search: string;
+    priorities: string[];
+    sortBy: keyof Task;
+    sortDirection: 'asc' | 'desc';
+  }): any[] {
+    const filtered = this.applyFilters(tasks, filters);
+    return [
+      {
+        title: 'To Do',
+        status: 'todo',
+        tasks: filtered.filter(task => task.status === 'todo')
+      },
+      {
+        title: 'In Progress',
+        status: 'in-progress',
+        tasks: filtered.filter(task => task.status === 'in-progress')
+      },
+      {
+        title: 'Done',
+        status: 'done',
+        tasks: filtered.filter(task => task.status === 'done')
+      },
+    ];
+  }
+
+  private applyFilters(tasks: Task[], filters: {
+    search: string;
+    priorities: string[];
+    sortBy: keyof Task;
+    sortDirection: 'asc' | 'desc';
+  }): Task[] {
+    let filtered = [...tasks];
+
+    const { search, priorities, sortBy, sortDirection } = filters;
+
+    if (search) {
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(search.toLowerCase()) ||
+        task.description?.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+
+    if (priorities && priorities.length > 0) {
+      filtered = filtered.filter(task =>
+        priorities.includes(task.priority)
+      );
+    }
+
+    filtered = this.sortTasks(filtered, sortBy, sortDirection);
+
+    return filtered;
+  }
+
+  sortTasks(tasks: Task[], sortBy: keyof Task, sortDirection: 'asc' | 'desc'): Task[] {
+    if (sortBy === 'priority') {
+      const order = ['high', 'medium', 'low'];
+      return tasks.sort((a, b) => {
+        const aIndex = order.indexOf(a.priority);
+        const bIndex = order.indexOf(b.priority);
+        return sortDirection === 'asc' ? aIndex - bIndex : bIndex - aIndex;
+      });
+    }
+
+    if (sortBy === 'dueDate') {
+      return tasks.sort((a, b) => {
+        const aOption = a?.dueDate || '';
+        const bOption = b.dueDate || '';
+
+        if (!aOption || !bOption) {
+          return 0;
+        }
+
+        const aDate = new Date(aOption);
+        const bDate = new Date(bOption);
+        return sortDirection === 'asc' ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
+      });
+    }
+
+    if (sortBy === 'order') {
+      return tasks.sort((a, b) => {
+        const aOrder = a.order;
+        const bOrder = b.order;
+        return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder;
+      });
+    }
+
+    if (sortBy === 'title') {
+      return tasks.sort((a, b) => {
+        const aTitle = a.title;
+        const bTitle = b.title;
+        return sortDirection === 'asc' ? aTitle.localeCompare(bTitle) : bTitle.localeCompare(aTitle);
+      });
+    }
+
+    return tasks;
+  }
+
+  // #endregion Load and ProcessTasks
 
   toggleSortDropdown(): void {
     this.isSortDropdownOpen = !this.isSortDropdownOpen;
@@ -91,22 +221,6 @@ export class BoardComponent implements OnInit {
 
   toggleFilteringExpanded(): void {
     this.isFilteringExpanded = !this.isFilteringExpanded;
-  }
-
-  getSelectedOptionLabel(): string {
-    const selectedOption = this.sortOptions.find(option => option.id === this.curSortOption);
-    return selectedOption ? selectedOption.label : 'Order';
-  }
-
-  selectSortOption(optionId: keyof Task): void {
-    this.curSortOption = optionId;
-    this.isSortDropdownOpen = false;
-    this.loadTasks();
-  }
-
-  toggleSortDirection(): void {
-    this.curSortDirection = this.curSortDirection === 'asc' ? 'desc' : 'asc';
-    this.loadTasks();
   }
 
   @HostListener('document:click', ['$event'])
@@ -117,47 +231,63 @@ export class BoardComponent implements OnInit {
     }
   }
 
+  // #region Task Events
   onAddTask(): void {
-    this.editingTask = null;
+    this.editingTask = {} as Task;
     this.showTaskForm = true;
   }
 
   onEditTask(task: Task): void {
-    this.editingTask = task;
+    this.editingTask = { ...task };
     this.showTaskForm = true;
   }
 
   onViewTask(task: Task): void {
-    this.viewingTask = task;
+    this.viewingTask = { ...task };
     this.showTaskView = true;
   }
 
   onTaskFormClose(): void {
     this.showTaskForm = false;
-    this.editingTask = null;
+    this.editingTask = {} as Task;
   }
 
   onTaskViewClose(): void {
     this.showTaskView = false;
-    this.viewingTask = null;
+    this.viewingTask = {} as Task;
   }
 
   onTaskSaved(newTaskId: number | null): void {
     this.showTaskForm = false;
-    this.editingTask = null;
+    const currentEditingTask = this.editingTask;
+    this.editingTask = {} as Task;
 
     if (newTaskId) {
+      this.taskService.getTaskById(newTaskId).subscribe((task) => {
+        this.tasks$.next([...this.tasks$.value, task]);
+      });
       // Mark this task as new for animation
       this.newTaskIds.add(newTaskId);
-    }
+    } else {
+      if (currentEditingTask?.id !== undefined) {
+        this.taskService.getTaskById(currentEditingTask.id).subscribe((task) => {
+          const currentTasks = this.tasks$.value;
+          const index = currentTasks.findIndex(t => t.id === currentEditingTask.id);
 
-    this.loadTasks();
+          if (index !== -1) {
+            const updatedTasks = [...currentTasks];
+            updatedTasks[index] = task;
+            this.tasks$.next(updatedTasks);
+          }
+        });
+      }
+    }
   }
 
   onTaskViewEdit(task: Task): void {
     this.showTaskView = false;
-    this.viewingTask = null;
-    this.editingTask = task;
+    this.viewingTask = {} as Task;
+    this.editingTask = { ...task };
     this.showTaskForm = true;
   }
 
@@ -165,25 +295,37 @@ export class BoardComponent implements OnInit {
     return this.newTaskIds.has(task.id!);
   }
 
-  onTaskDeleted(): void {
-    this.loadTasks();
+  onTaskDeleted(deletedTaskId?: number): void {
+    if (deletedTaskId) {
+      const currentTasks = this.tasks$.value;
+      this.tasks$.next(currentTasks.filter(task => task.id !== deletedTaskId));
+    } else {
+      this.loadTasks();
+    }
   }
 
-  onTaskMoved({ taskId, oldIndex, newIndex, oldStatus, newStatus }: { taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }): void {
-    const task = this.tasks.find(task => {
-      return Number(task?.id) === Number(taskId);
-    });
-    if (!task) {
-      console.error('Task not found:', taskId);
+  onTaskMoved({ taskId, newIndex, newStatus }: { taskId: number, newIndex: number, newStatus: string }): void {
+    const currentTasks = this.tasks$.value;
+    const taskIndex = currentTasks.findIndex(task => task.id === taskId);
+
+    if (taskIndex === -1) {
+      this.toastService.addToast({
+        text: `Task not found: ${taskId}`,
+        type: 'error',
+        delayAdd: false,
+      });
       return;
     }
 
+    const updatedTasks = [...currentTasks];
+    updatedTasks[taskIndex] = {
+      ...updatedTasks[taskIndex],
+      status: newStatus as 'todo' | 'in-progress' | 'done',
+      order: newIndex,
+    };
+    this.tasks$.next(updatedTasks);
 
-
-    // Use newStatus instead of task.status to update the task's status
     this.taskService.moveTask(taskId, newStatus, newIndex).subscribe(() => {
-      this.loadTasks();
-
       this.toastService.addToast({
         text: 'Task moved successfully!',
         type: 'success',
@@ -195,33 +337,62 @@ export class BoardComponent implements OnInit {
   onResetTasks(): void {
     this.newTaskIds.clear();
 
-    this.curSortOption = 'order';
-    this.curSortDirection = 'asc';
+    this.filters$.next({
+      ...this.filters$.value,
+      sortBy: 'order',
+      sortDirection: 'asc',
+    });
 
-    this.taskService.resetTasks().subscribe(() => {
-      this.loadTasks();
+    this.taskService.resetTasks().subscribe((tasks) => {
+      this.tasks$.next(tasks);
     });
   }
 
-  onSortChange(event: Event): void {
-    const selectedOption = (event.target as HTMLSelectElement).value;
-    this.curSortOption = selectedOption as keyof Task;
-    this.loadTasks();
-  }
+  // #endregion Task Events
 
+  // #region Search and Filter Events
   onSearch(value: string): void {
-    this.searchValue = value;
-
-    this.loadTasks();
+    this.filters$.next({
+      ...this.filters$.value,
+      search: value
+    })
   }
 
   onPrioritySelected({ option, isSelected }: { option: string, isSelected: boolean }): void {
     if (isSelected) {
-      this.selectedPriorityOptions = this.selectedPriorityOptions.filter(opt => opt !== option);
+      this.filters$.next({
+        ...this.filters$.value,
+        priorities: this.filters$.value.priorities.filter(opt => opt !== option)
+      })
     } else {
-      this.selectedPriorityOptions = [...this.selectedPriorityOptions, option];
+      this.filters$.next({
+        ...this.filters$.value,
+        priorities: [...this.filters$.value.priorities, option]
+      })
     }
+  }
 
-    this.loadTasks();
+  selectSortOption(optionId: keyof Task): void {
+    this.curSortOption = optionId;
+
+    this.filters$.next({
+      ...this.filters$.value,
+      sortBy: optionId
+    });
+    this.isSortDropdownOpen = false;
+  }
+
+  toggleSortDirection(): void {
+    const newDirection = this.curSortDirection === 'asc' ? 'desc' : 'asc';
+    this.filters$.next({
+      ...this.filters$.value,
+      sortDirection: newDirection,
+    });
+  }
+  // #endregion Search and Filter Events
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -26,6 +26,7 @@ export class TaskFormComponent implements OnInit {
 
   formData: Task = {
     title: '',
+    order: 0,
     description: '',
     status: 'todo',
     priority: 'medium',

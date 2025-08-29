@@ -13,15 +13,12 @@ export class TaskService {
     private toastService: ToastService
   ) { }
 
-  getTasks({ sortOption,sortDirection,priorityOptions,filterString
-  }: {
-      sortOption: keyof Task,
-      sortDirection: 'asc' | 'desc',
-      priorityOptions: string[],
-      filterString: string
-    }
-  ): Observable<Task[]> {
-    return this.http.get<Task[]>(`${this.apiUrl}/tasks?sortBy=${sortOption}&sortDirection=${sortDirection}&priority=${priorityOptions}&filterString=${filterString}`);
+  getTasks(): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.apiUrl}/tasks`);
+  }
+
+  getTaskById(id: number): Observable<Task> {
+    return this.http.get<Task>(`${this.apiUrl}/tasks/${id}`);
   }
 
   createTask(task: Task): Observable<Task> {

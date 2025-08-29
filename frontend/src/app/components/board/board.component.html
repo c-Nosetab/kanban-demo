@@ -22,7 +22,7 @@
             [class.open]="isSortDropdownOpen"
           >
             <div class="selected-option">
-              <span class="selected-text">{{ getSelectedOptionLabel() }}</span>
+              <span class="selected-text">{{ selectedSortLabel }}</span>
               <span class="select-arrow">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M7 10l5 5 5-5z" />
@@ -78,10 +78,11 @@
   </div>
 
   <div class="board" cdkDropListGroup>
+    @for (column of columns$ | async; track column.status) {
     <app-column
-      title="TODO"
-      status="todo"
-      [tasks]="getTasksByStatus('todo')"
+      [title]="column.title"
+      [status]="column.status"
+      [tasks]="column.tasks"
       [isNewTask]="isNewTask.bind(this)"
       (taskEdit)="onEditTask($event)"
       (taskDelete)="onTaskDeleted()"
@@ -89,30 +90,7 @@
       (taskView)="onViewTask($event)"
     >
     </app-column>
-
-    <app-column
-      title="IN PROGRESS"
-      status="in-progress"
-      [tasks]="getTasksByStatus('in-progress')"
-      [isNewTask]="isNewTask.bind(this)"
-      (taskEdit)="onEditTask($event)"
-      (taskDelete)="onTaskDeleted()"
-      (taskMove)="onTaskMoved($event)"
-      (taskView)="onViewTask($event)"
-    >
-    </app-column>
-
-    <app-column
-      title="DONE"
-      status="done"
-      [tasks]="getTasksByStatus('done')"
-      [isNewTask]="isNewTask.bind(this)"
-      (taskEdit)="onEditTask($event)"
-      (taskDelete)="onTaskDeleted()"
-      (taskMove)="onTaskMoved($event)"
-      (taskView)="onViewTask($event)"
-    >
-    </app-column>
+    }
   </div>
 
   @if (showTaskForm) {
@@ -122,7 +100,7 @@
     (formClosed)="onTaskFormClose()"
   >
   </app-task-form>
-  } @if (showTaskView) {
+  } @if (showTaskView && viewingTask) {
   <app-task-view
     [task]="viewingTask"
     [isOpen]="showTaskView"
