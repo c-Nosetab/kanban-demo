@@ -8,8 +8,8 @@ import { MatIcon } from '@angular/material/icon';
   selector: 'app-task-view',
   standalone: true,
   imports: [CommonModule, Modal, MatIcon],
-  templateUrl: './task-view.component.html',
-  styleUrls: ['./task-view.component.scss']
+  templateUrl: './task-view.html',
+  styleUrls: ['./task-view.scss']
 })
 export class TaskViewComponent {
   @Input() task!: Task;

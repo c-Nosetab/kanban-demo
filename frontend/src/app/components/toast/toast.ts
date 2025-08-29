@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-toast',
   imports: [NgClass, MatIconModule],
   templateUrl: './toast.html',
-  styleUrl: './toast.scss'
+  styleUrls: ['./toast.scss']
 })
 export class Toast implements OnInit, OnDestroy {
   toasts: SetToastObject[] = [];

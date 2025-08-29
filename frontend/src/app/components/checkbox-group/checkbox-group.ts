@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatIconModule,
   ],
   templateUrl: './checkbox-group.html',
-  styleUrl: './checkbox-group.scss'
+  styleUrls: ['./checkbox-group.scss']
 })
 export class CheckboxGroup {
   @Input() label: string = '';

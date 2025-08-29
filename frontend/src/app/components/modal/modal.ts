@@ -5,7 +5,7 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
   selector: 'app-modal',
   imports: [LoadingSpinner],
   templateUrl: './modal.html',
-  styleUrl: './modal.scss'
+  styleUrls: ['./modal.scss']
 })
 export class Modal implements OnDestroy, OnChanges {
   @Input() isOpen: boolean = false;

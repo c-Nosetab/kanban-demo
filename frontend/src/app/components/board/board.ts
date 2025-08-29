@@ -2,9 +2,9 @@ import { Component, OnInit, HostListener, AfterViewInit, ChangeDetectionStrategy
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
-import { ColumnComponent } from '../column/column.component';
-import { TaskFormComponent } from '../task-form/task-form.component';
-import { TaskViewComponent } from '../task-view/task-view.component';
+import { ColumnComponent } from '../column/column';
+import { TaskFormComponent } from '../task-form/task-form';
+import { TaskViewComponent } from '../task-view/task-view';
 import { ToastService } from '../../services/toast.service';
 import { Search } from '../search/search';
 import { CheckboxGroup } from '../checkbox-group/checkbox-group';
@@ -17,8 +17,8 @@ import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, ColumnComponent, TaskFormComponent, TaskViewComponent, Search, CheckboxGroup, CdkDropListGroup],
-  templateUrl: './board.component.html',
-  styleUrls: ['./board.component.scss']
+  templateUrl: './board.html',
+  styleUrls: ['./board.scss']
 })
 export class BoardComponent implements OnInit {
   private tasks$ = new BehaviorSubject<Task[]>([]);

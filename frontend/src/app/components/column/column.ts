@@ -1,15 +1,15 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
-import { TaskCardComponent } from '../task-card/task-card.component';
+import { TaskCardComponent } from '../task-card/task-card';
 import { CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-column',
   standalone: true,
   imports: [CommonModule, TaskCardComponent, CdkDropList, CdkDrag],
-  templateUrl: './column.component.html',
-  styleUrls: ['./column.component.scss']
+  templateUrl: './column.html',
+  styleUrls: ['./column.scss']
 })
 export class ColumnComponent {
   @Input() title!: string;

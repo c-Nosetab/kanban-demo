@@ -5,7 +5,7 @@ import { MatIcon } from '@angular/material/icon';
   selector: 'app-search',
   imports: [MatIcon],
   templateUrl: './search.html',
-  styleUrl: './search.scss'
+  styleUrls: ['./search.scss']
 })
 export class Search {
   @Input() placeholder: string = 'Search tasks';

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TaskService } from './services/task.service';
-import { Toast } from './components/toast/toast.component';
+import { Toast } from './components/toast/toast';
 import { EnvironmentService } from './services/environment.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { EnvironmentService } from './services/environment.service';
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
-  title = 'Task Board Manager';
+  title = 'Bateson Kanban';
 
   constructor(
     private taskService: TaskService,
