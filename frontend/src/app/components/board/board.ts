@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, HostListener, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { TaskService } from '../../services/task.service';
@@ -14,13 +14,12 @@ import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map
 
 @Component({
   selector: 'app-board',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, ColumnComponent, TaskFormComponent, TaskViewComponent, Search, CheckboxGroup, CdkDropListGroup],
   templateUrl: './board.html',
   styleUrls: ['./board.scss']
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, AfterViewInit {
   private tasks$ = new BehaviorSubject<Task[]>([]);
   private filters$ = new BehaviorSubject<{
     search: string;
@@ -56,6 +55,20 @@ export class BoardComponent implements OnInit {
   isSortDropdownOpen = false;
   isFilteringExpanded = false;
   curSortDirection: 'asc' | 'desc' = 'asc';
+
+  // Mobile drag-and-drop state
+  isDragging = false;
+  collapsedColumns: Set<string> = new Set();
+  expandTimer: any = null;
+  hoveringColumn: string | null = null;
+  draggedFromColumn: string | null = null;
+  dragHoveringColumn: string | null = null;
+
+  // Manual column collapse state (separate from drag-induced collapse)
+  manuallyCollapsedColumns: Set<string> = new Set();
+
+  // Track mobile view state for responsive behavior
+  wasMobileView: boolean = window.innerWidth < 768;
 
   sortOptions: { id: keyof Task, label: string }[] = [
     { id: 'order', label: 'Order' },
@@ -94,7 +107,8 @@ export class BoardComponent implements OnInit {
 
   constructor(
     private taskService: TaskService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -236,6 +250,22 @@ export class BoardComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: Event): void {
+    const currentlyMobile = window.innerWidth < 768;
+    const wasMobile = this.wasMobileView;
+
+    // Update mobile state
+    this.wasMobileView = currentlyMobile;
+
+    // If switching from mobile to desktop, clear all collapse states
+    if (wasMobile && !currentlyMobile) {
+      this.manuallyCollapsedColumns.clear();
+      this.collapsedColumns.clear();
+      this.cdr.detectChanges();
+    }
+  }
+
   // #region Task Events
   onAddTask(): void {
     this.editingTask = null as any;
@@ -309,26 +339,286 @@ export class BoardComponent implements OnInit {
     }
   }
 
+  onDragStart(): void {
+    this.isDragging = true;
+    // Don't collapse columns immediately - wait for drag to leave bounds
+  }
+
+  onDragEnd(): void {
+    // Don't immediately clear drag state - delay to allow drop detection to use it
+    const targetColumn = this.dragHoveringColumn;
+    this.isDragging = false;
+    this.clearExpandTimer();
+
+    // Clear state after a short delay to allow drop handlers to complete
+    setTimeout(() => {
+      this.collapsedColumns.clear();
+      this.hoveringColumn = null;
+      this.draggedFromColumn = null;
+      this.dragHoveringColumn = null;
+
+      // On mobile, scroll to the target column after drop
+      if (window.innerWidth < 768 && targetColumn) {
+        this.scrollToColumn(targetColumn);
+      }
+    }, 100);
+  }
+
+  onDragMoved(columnStatus: string, event: any): void {
+    if (!this.isDragging) return;
+
+    // Only on mobile (below 768px)
+    if (window.innerWidth >= 768) return;
+
+    // Store which column the drag started from
+    if (!this.draggedFromColumn) {
+      this.draggedFromColumn = columnStatus;
+    }
+
+    // Get the current position of the drag
+    const dragPosition = event.pointerPosition;
+
+    // Check if drag is outside the original column bounds
+    const columnElement = document.querySelector(`[data-column="${columnStatus}"]`) as HTMLElement;
+    if (columnElement && this.draggedFromColumn === columnStatus) {
+      const rect = columnElement.getBoundingClientRect();
+      const isOutsideColumn = dragPosition.x < rect.left ||
+                             dragPosition.x > rect.right ||
+                             dragPosition.y < rect.top ||
+                             dragPosition.y > rect.bottom;
+
+      if (isOutsideColumn) {
+        // First time leaving original column - collapse all columns initially
+        if (this.collapsedColumns.size === 0) {
+          ['todo', 'in-progress', 'done'].forEach(status => {
+            this.collapsedColumns.add(status);
+          });
+        } else {
+          // Subsequent movements - preserve manually expanded columns
+          const expandedColumns = new Set<string>();
+
+          // Check which columns are currently expanded (not in collapsed set)
+          ['todo', 'in-progress', 'done'].forEach(status => {
+            if (!this.collapsedColumns.has(status)) {
+              expandedColumns.add(status);
+            }
+          });
+
+          // Collapse all columns
+          ['todo', 'in-progress', 'done'].forEach(status => {
+            this.collapsedColumns.add(status);
+          });
+
+          // But immediately restore any that were manually expanded
+          expandedColumns.forEach(status => {
+            this.collapsedColumns.delete(status);
+          });
+        }
+      }
+    }
+
+    // Check which column we're currently over for expansion
+    this.checkColumnHover(dragPosition);
+  }
+
+  private checkColumnHover(dragPosition: { x: number, y: number }): void {
+    const columns = ['todo', 'in-progress', 'done'];
+    let hoveredColumn: string | null = null;
+
+    // Find which column the drag is currently over - use distance-based detection to avoid overlaps
+    let bestMatch: { column: string; distance: number } | null = null;
+
+    for (const status of columns) {
+      const columnElement = document.querySelector(`[data-column="${status}"]`) as HTMLElement;
+      if (columnElement) {
+        const rect = columnElement.getBoundingClientRect();
+        const padding = 20;
+
+        // Calculate center of column for distance measurement
+        const centerX = (rect.left + rect.right) / 2;
+        const centerY = (rect.top + rect.bottom) / 2;
+
+        // For all columns during drag, use actual bounds for expanded columns, extended bounds for collapsed
+        let top = rect.top;
+        let bottom = rect.bottom;
+
+        if (this.isDragging) {
+          if (this.collapsedColumns.has(status)) {
+            // For collapsed columns, extend bounds for easier targeting
+            const columnIndex = columns.indexOf(status);
+            const nextColumn = columns[columnIndex + 1];
+
+            if (nextColumn) {
+              const nextElement = document.querySelector(`[data-column="${nextColumn}"]`) as HTMLElement;
+              if (nextElement) {
+                const nextRect = nextElement.getBoundingClientRect();
+                bottom = Math.min(rect.bottom + 120, (rect.bottom + nextRect.top) / 2);
+              }
+            } else {
+              bottom = rect.bottom + 120;
+            }
+          } else {
+            // For expanded columns, use actual bounds with minimal padding
+            // This prevents the 140px gap issue
+            top = rect.top;
+            bottom = rect.bottom;
+            // Only add small padding for stability
+          }
+        }
+
+        // Debug logging for expanded columns
+        const isExpanded = !this.collapsedColumns.has(status);
+        const inBounds = dragPosition.x >= (rect.left - padding) &&
+                        dragPosition.x <= (rect.right + padding) &&
+                        dragPosition.y >= (top - padding) &&
+                        dragPosition.y <= (bottom + padding);
+
+
+        // Check if point is within extended bounds
+        if (inBounds) {
+          // Calculate distance to column center for tie-breaking
+          const distance = Math.sqrt(
+            Math.pow(dragPosition.x - centerX, 2) +
+            Math.pow(dragPosition.y - centerY, 2)
+          );
+
+          if (!bestMatch || distance < bestMatch.distance) {
+            bestMatch = { column: status, distance };
+          }
+        }
+      }
+    }
+
+    hoveredColumn = bestMatch ? bestMatch.column : null;
+
+    // Update drag hover state for visual feedback
+    if (hoveredColumn !== this.dragHoveringColumn) {
+      this.dragHoveringColumn = hoveredColumn;
+    }
+
+    // Handle hover changes for expansion logic
+    if (hoveredColumn !== this.hoveringColumn) {
+      // Only clear timer when actually changing columns
+      this.clearExpandTimer();
+
+      // Store the previous column before updating
+      const previousColumn = this.hoveringColumn;
+
+      // If we're moving away from an expanded column, collapse it after a delay
+      if (previousColumn && !this.collapsedColumns.has(previousColumn) && hoveredColumn !== previousColumn) {
+        // Collapse the previously hovered expanded column after a short delay
+        const columnToCollapse = previousColumn;
+        setTimeout(() => {
+          // Only collapse if we're still not hovering over it
+          if (this.hoveringColumn !== columnToCollapse) {
+            this.collapsedColumns.add(columnToCollapse);
+          }
+        }, 300);
+      }
+
+      this.hoveringColumn = hoveredColumn;
+
+      if (hoveredColumn && this.collapsedColumns.has(hoveredColumn)) {
+        this.expandTimer = setTimeout(() => {
+          this.collapsedColumns.delete(hoveredColumn!);
+
+          // Force CDK to recalculate drop zones after expansion
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.refreshCdkDropZones();
+          }, 50);
+        }, 500);
+      }
+    }
+  }
+
+  isDragHoveringOverColumn(columnStatus: string): boolean {
+    return this.isDragging && this.dragHoveringColumn === columnStatus;
+  }
+
+  onDragOver(columnStatus: string): void {
+    if (!this.isDragging) return;
+
+    // Only on mobile (below 768px)
+    if (window.innerWidth >= 768) return;
+
+    if (this.hoveringColumn !== columnStatus) {
+      this.clearExpandTimer();
+      this.hoveringColumn = columnStatus;
+
+      // Start 2-second timer to expand this column
+      this.expandTimer = setTimeout(() => {
+        this.collapsedColumns.delete(columnStatus);
+        console.log('Expanded column:', columnStatus);
+        // Force CDK to recalculate drop zones after expansion
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.refreshCdkDropZones();
+        }, 50);
+      }, 2000);
+    }
+  }
+
+  onDragLeave(columnStatus: string): void {
+    if (!this.isDragging) return;
+
+    // Only on mobile (below 768px)
+    if (window.innerWidth >= 768) return;
+
+    // Re-collapse this column when drag leaves (unless it was expanded)
+    if (this.hoveringColumn === columnStatus) {
+      this.clearExpandTimer();
+      this.hoveringColumn = null;
+      // Re-collapse if it wasn't permanently expanded
+      this.collapsedColumns.add(columnStatus);
+    }
+  }
+
+  private clearExpandTimer(): void {
+    if (this.expandTimer) {
+      clearTimeout(this.expandTimer);
+      this.expandTimer = null;
+    }
+  }
+
+  isColumnCollapsed(columnStatus: string): boolean {
+    return this.collapsedColumns.has(columnStatus) || this.manuallyCollapsedColumns.has(columnStatus);
+  }
+
   onTaskMoved({ taskId, newIndex, newStatus, oldIndex }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number }): void {
+
     // Perform optimistic update to prevent visual jump
     const currentTasks = [...this.tasks$.value];
     const taskToMove = currentTasks.find(task => task.id === taskId);
-    
+
     if (taskToMove) {
+      // Override drop target if we detected a different hover column (for collapsed columns)
+      let actualNewStatus = newStatus;
+      if (this.dragHoveringColumn && this.dragHoveringColumn !== newStatus) {
+        actualNewStatus = this.dragHoveringColumn;
+      }
+
+      // If dropping on collapsed column, place at end of that column's tasks
+      let finalIndex = newIndex;
+      if (this.collapsedColumns.has(actualNewStatus)) {
+        const tasksInTargetColumn = currentTasks.filter(task => task.status === actualNewStatus);
+        finalIndex = tasksInTargetColumn.length; // Place at end
+      }
+
       // Update the task's status and position optimistically
-      const updatedTask = { ...taskToMove, status: newStatus as 'todo' | 'in-progress' | 'done', order: newIndex };
-      const updatedTasks = currentTasks.map(task => 
+      const updatedTask = { ...taskToMove, status: actualNewStatus as 'todo' | 'in-progress' | 'done', order: finalIndex };
+      const updatedTasks = currentTasks.map(task =>
         task.id === taskId ? updatedTask : task
       );
-      
+
       // Update the UI immediately
       this.tasks$.next(updatedTasks);
-      
+
       // Then make the API call
-      this.taskService.moveTask(taskId, newStatus, newIndex).subscribe({
+      this.taskService.moveTask(taskId, actualNewStatus, finalIndex).subscribe({
         next: () => {
           this.toastService.addToast({
-            text: 'Task moved successfully!',
+            text: 'Task moved successfully into ' + actualNewStatus + '!',
             type: 'success',
             delayAdd: true,
           });
@@ -411,8 +701,73 @@ export class BoardComponent implements OnInit {
     this.toastService.showToasts();
   }
 
+  private refreshCdkDropZones(): void {
+    // Force CDK to recalculate by triggering scroll events and reflows
+    const dropLists = document.querySelectorAll('.cdk-drop-list');
+    dropLists.forEach(list => {
+      const element = list as HTMLElement;
+      // Force a reflow by accessing offsetHeight and applying transform
+      const height = element.offsetHeight;
+      element.style.transform = 'translateZ(0)';
+
+      // Reset transform after brief delay to complete the refresh
+      setTimeout(() => {
+        element.style.transform = '';
+        // Trigger another reflow
+        const newHeight = element.offsetHeight;
+      }, 10);
+    });
+
+    // Force a scroll event to trigger CDK recalculation
+    // This mimics what happens when the user scrolls
+    setTimeout(() => {
+      const scrollEvent = new Event('scroll', { bubbles: true });
+      window.dispatchEvent(scrollEvent);
+
+      // Also trigger on the board container
+      const boardContainer = document.querySelector('.board');
+      if (boardContainer) {
+        boardContainer.dispatchEvent(scrollEvent);
+      }
+    }, 60);
+  }
+
+  private scrollToColumn(columnStatus: string): void {
+    // Find the target column element
+    const columnElement = document.querySelector(`[data-column="${columnStatus}"]`) as HTMLElement;
+    if (columnElement) {
+      // Smooth scroll to bring the column to the top of the viewport
+      const rect = columnElement.getBoundingClientRect();
+      const targetY = window.scrollY + rect.top - 20; // 20px padding from top
+
+      window.scrollTo({
+        top: targetY,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  toggleColumnCollapse(columnStatus: string): void {
+    if (this.manuallyCollapsedColumns.has(columnStatus)) {
+      this.manuallyCollapsedColumns.delete(columnStatus);
+    } else {
+      this.manuallyCollapsedColumns.add(columnStatus);
+    }
+    this.cdr.detectChanges();
+  }
+
+  isMobileView(): boolean {
+    return window.innerWidth < 768;
+  }
+
+  // Initialize mobile state tracking on component init
+  ngAfterViewInit(): void {
+    this.wasMobileView = this.isMobileView();
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearExpandTimer();
   }
 }

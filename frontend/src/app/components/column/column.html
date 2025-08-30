@@ -1,7 +1,23 @@
-<div class="column">
-  <div class="column-header">
-    <h3>{{ title }}</h3>
-    <span class="task-count">{{ tasks.length }}</span>
+<div
+  class="column"
+  [class.collapsed]="isCollapsed"
+  [class.drag-hovering]="isDragHovering"
+  [attr.data-column]="status"
+>
+  <div
+    class="column-header"
+    [class.mobile-clickable]="showMobileToggle"
+    (click)="showMobileToggle ? onToggleCollapse() : null"
+  >
+    <div class="title-with-caret">
+      <mat-icon fontSet="material-icons-round" [class.expanded]="!isCollapsed" class="mobile-caret"
+        >chevron_right</mat-icon
+      >
+      <h3>{{ title }}</h3>
+    </div>
+    <div class="column-header-actions">
+      <span class="task-count">{{ tasks.length }}</span>
+    </div>
   </div>
 
   <div
@@ -9,6 +25,8 @@
     cdkDropList
     [cdkDropListData]="status"
     (cdkDropListDropped)="onTaskDrop($event)"
+    (cdkDropListEntered)="onDragOver($event)"
+    (cdkDropListExited)="onDragLeave()"
   >
     @for (task of tasks; track trackByTaskId(task.id!, task)) {
     <app-task-card
@@ -16,6 +34,9 @@
       [task]="task"
       [isNew]="isNewTask(task)"
       cdkDrag
+      (cdkDragStarted)="onDragStart()"
+      (cdkDragEnded)="onDragEnd()"
+      (cdkDragMoved)="onDragMoved($event)"
       (taskEdit)="onTaskEdit($event)"
       (taskDelete)="onTaskDelete()"
       (taskView)="onTaskView($event)"

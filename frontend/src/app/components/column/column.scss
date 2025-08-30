@@ -5,6 +5,93 @@
   min-height: 500px;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &.collapsed {
+    min-height: 60px; // Increased to accommodate header + drop zone
+    max-height: 60px;
+
+    .column-content {
+      opacity: 0;
+      transform: scaleY(0);
+      height: 60px; // Keep some height for drop zone functionality
+      min-height: 60px; // Maintain drop zone
+      // Keep drop zone active but invisible
+      pointer-events: auto;
+      // Hide overflow to prevent content from showing
+      overflow: hidden;
+
+      // Make the drop zone invisible but functional
+      .cdk-drop-list {
+        height: 100%;
+        min-height: 60px;
+      }
+    }
+
+    .column-header {
+      border-bottom: none;
+    }
+
+    // Show visual indicator when dragging over collapsed column
+    &:hover .column-content,
+    .column-content.cdk-drop-list-dragging {
+      background: rgba(63, 81, 181, 0.1);
+    }
+  }
+
+  // When column is expanded (not collapsed), ensure normal behavior
+  &:not(.collapsed) {
+    min-height: 500px; // Reset to normal
+    max-height: none; // Remove height restrictions
+
+    .column-content {
+      opacity: 1;
+      transform: scaleY(1);
+      height: auto;
+      min-height: 200px;
+      overflow: visible;
+      pointer-events: auto;
+
+      // Ensure the drop list is fully functional when expanded
+      .cdk-drop-list {
+        min-height: 200px;
+        height: auto;
+        pointer-events: auto;
+        background: transparent;
+
+        // Force immediate drop zone activation
+        &.cdk-drop-list-dragging {
+          background: rgba(63, 81, 181, 0.05);
+        }
+      }
+    }
+
+    .column-header {
+      // border-bottom: 2px solid #c5cae9; // Restore normal border
+    }
+  }
+
+  // Drag hover effect - shows when task is being dragged over this column
+  &.drag-hovering {
+    background: rgba(63, 81, 181, 0.15);
+    border: 2px solid #3f51b5;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+
+    .column-header h3 {
+      color: #1a237e;
+      font-weight: 700;
+    }
+
+    .task-count {
+      background: #1a237e;
+      transform: scale(1.1);
+    }
+
+    // Add a subtle pulse animation
+    animation: dragHoverPulse 1s ease-in-out infinite;
+  }
 }
 
 .column-header {
@@ -15,6 +102,12 @@
   padding-bottom: 8px;
   border-bottom: 2px solid #c5cae9;
 
+  .title-with-caret {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   h3 {
     margin: 0;
     font-size: 1rem;
@@ -23,6 +116,33 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+
+  &.mobile-clickable {
+    // cursor: pointer;
+    // pointer-events: auto;
+    // remove typical highlight on touch devices
+    -webkit-tap-highlight-color: transparent;
+    padding: 8px;
+    margin: -8px -8px 8px -8px; // Expand clickable area beyond visual boundaries
+    // border-radius: 8px;
+    transition: background-color 0.2s ease;
+    border: none;
+
+    &:hover {
+      // background-color: rgba(63, 81, 181, 0.05);
+    }
+
+    :active {
+      background-color: rgba(63, 81, 181, 0.1);
+      // transform: scale(0.98);
+    }
+  }
+}
+
+.column-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .task-count {
@@ -36,12 +156,28 @@
   text-align: center;
 }
 
+.mobile-caret {
+  color: #3f51b5;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; // Let header handle the click
+  opacity: 0.7;
+  scale: 1.5;
+  transition: transform 0.2s ease;
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
 .column-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-height: 200px;
+  transition: all 0.3s ease;
+  transform-origin: top;
 }
 
 .cdk-drop-list {
@@ -77,4 +213,20 @@
 
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .mobile-caret {
+    display: flex;
+  }
+}
+
+// Pulse animation for drag hover effect
+@keyframes dragHoverPulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 16px rgba(63, 81, 181, 0.4);
+  }
 }

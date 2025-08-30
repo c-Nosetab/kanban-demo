@@ -84,10 +84,19 @@
       [status]="column.status"
       [tasks]="column.tasks"
       [isNewTask]="isNewTask.bind(this)"
+      [isCollapsed]="isColumnCollapsed(column.status)"
+      [isDragHovering]="isDragHoveringOverColumn(column.status)"
+      [showMobileToggle]="isMobileView()"
       (taskEdit)="onEditTask($event)"
       (taskDelete)="onTaskDeleted()"
       (taskMove)="onTaskMoved($event)"
       (taskView)="onViewTask($event)"
+      (dragStart)="onDragStart()"
+      (dragEnd)="onDragEnd()"
+      (dragOver)="onDragOver(column.status)"
+      (dragLeave)="onDragLeave(column.status)"
+      (dragMoved)="onDragMoved(column.status, $event)"
+      (toggleCollapse)="toggleColumnCollapse(column.status)"
     >
     </app-column>
     }
