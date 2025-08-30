@@ -2,6 +2,8 @@
   class="task-card"
   [class.overdue]="isOverdue()"
   [class.done]="isDone()"
+  [class.drag-ready]="isDragEnabled && isMobile"
+  [class.long-pressing]="isLongPressing"
   (click)="handleTaskClick()"
 >
   <div class="task-header">

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ElementRef, ViewContainerRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ElementRef, ViewContainerRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Task } from '../../models/task.interface';
 import { ToastService } from '../../services/toast.service';
@@ -19,10 +19,18 @@ export class TaskCardComponent implements OnInit {
 
   deleteIsLoading: boolean = false;
   deleteModalInput: string = '';
+  
+  // Long press properties for mobile drag confirmation
+  private longPressTimer: number | null = null;
+  private longPressDuration = 800; // milliseconds
+  isDragEnabled = false;
+  isLongPressing = false;
+  isMobile = false;
 
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<void>();
   @Output() taskView = new EventEmitter<Task>();
+  @Output() dragEnabledChange = new EventEmitter<boolean>();
 
   @ViewChild(Modal) modalRef!: Modal;
 
@@ -34,6 +42,11 @@ export class TaskCardComponent implements OnInit {
   ngOnInit() {
     if (this.isNew) {
       this.animateIn();
+    }
+    this.checkIfMobile();
+    // On desktop, drag is always enabled
+    if (!this.isMobile) {
+      this.isDragEnabled = true;
     }
   }
 
@@ -129,5 +142,92 @@ export class TaskCardComponent implements OnInit {
       element.style.transform = '';
       element.style.transition = '';
     }, 300);
+  }
+
+  private checkIfMobile(): void {
+    // Check if device is likely mobile based on touch support and screen size
+    this.isMobile = 'ontouchstart' in window && window.innerWidth <= 768;
+  }
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent): void {
+    if (!this.isMobile) return;
+    
+    // Don't start long press if touching buttons
+    const target = event.target as HTMLElement;
+    if (target.closest('.task-actions') || target.closest('button')) {
+      return;
+    }
+
+    this.startLongPress();
+  }
+
+  @HostListener('touchend')
+  onTouchEnd(): void {
+    if (!this.isMobile) return;
+    this.cancelLongPress();
+  }
+
+  @HostListener('touchmove')
+  onTouchMove(): void {
+    if (!this.isMobile) return;
+    // Cancel long press if user moves finger (indicating scroll/navigation)
+    this.cancelLongPress();
+  }
+
+  @HostListener('touchcancel')
+  onTouchCancel(): void {
+    if (!this.isMobile) return;
+    this.cancelLongPress();
+  }
+
+  private startLongPress(): void {
+    this.isLongPressing = true;
+    
+    this.longPressTimer = window.setTimeout(() => {
+      // Long press detected - enable drag
+      this.isDragEnabled = true;
+      this.dragEnabledChange.emit(true);
+      
+      // Visual feedback for successful long press
+      this.elementRef.nativeElement.classList.add('drag-ready');
+      
+      // Auto-disable drag after a few seconds if no drag starts
+      setTimeout(() => {
+        if (this.isDragEnabled) {
+          this.disableDrag();
+        }
+      }, 3000);
+    }, this.longPressDuration);
+  }
+
+  private cancelLongPress(): void {
+    this.isLongPressing = false;
+    
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
+
+  private disableDrag(): void {
+    this.isDragEnabled = false;
+    this.dragEnabledChange.emit(false);
+    this.elementRef.nativeElement.classList.remove('drag-ready');
+  }
+
+  // Called when drag actually starts
+  onDragStart(): void {
+    // Keep drag enabled during drag operation
+  }
+
+  // Called when drag ends
+  onDragEnd(): void {
+    if (this.isMobile) {
+      // Disable drag after drag operation completes on mobile
+      setTimeout(() => {
+        this.disableDrag();
+      }, 100);
+    }
   }
 }

@@ -34,12 +34,14 @@
       [task]="task"
       [isNew]="isNewTask(task)"
       cdkDrag
+      [cdkDragDisabled]="!isDragEnabledForTask(task)"
       (cdkDragStarted)="onDragStart()"
       (cdkDragEnded)="onDragEnd()"
       (cdkDragMoved)="onDragMoved($event)"
       (taskEdit)="onTaskEdit($event)"
       (taskDelete)="onTaskDelete()"
       (taskView)="onTaskView($event)"
+      (dragEnabledChange)="onTaskDragEnabledChange(task.id!, $event)"
     >
     </app-task-card>
     } @if (tasks.length === 0) {

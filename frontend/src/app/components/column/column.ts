@@ -21,6 +21,9 @@ export class ColumnComponent {
   @Input() isDragHovering: boolean = false;
   @Input() showMobileToggle: boolean = false;
 
+  // Track which tasks have drag enabled (for mobile)
+  private dragEnabledTasks = new Set<number>();
+
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<Task>();
   @Output() taskMove = new EventEmitter<{ taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }>();
@@ -92,5 +95,26 @@ export class ColumnComponent {
 
   trackByTaskId(index: number, task: Task): number {
     return task.id || index;
+  }
+
+  isDragEnabledForTask(task: Task): boolean {
+    // On desktop, drag is always enabled
+    if (!this.isMobile()) {
+      return true;
+    }
+    // On mobile, check if this specific task has drag enabled
+    return this.dragEnabledTasks.has(task.id!);
+  }
+
+  onTaskDragEnabledChange(taskId: number, isEnabled: boolean): void {
+    if (isEnabled) {
+      this.dragEnabledTasks.add(taskId);
+    } else {
+      this.dragEnabledTasks.delete(taskId);
+    }
+  }
+
+  private isMobile(): boolean {
+    return 'ontouchstart' in window && window.innerWidth <= 768;
   }
 }
