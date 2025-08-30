@@ -22,27 +22,32 @@ $error-dark-color: #af2f0d;
 /* Main toast component */
 .toast-container {
   position: fixed;
-  pointer-events: none;
+  bottom: 24px;
+  left: 24px;
   z-index: 9000;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
+  display: flex;
+  flex-direction: column-reverse; /* New toasts appear at bottom, push others up */
+  gap: 10px;
+  pointer-events: none;
+  max-width: 400px;
+  overflow: visible; /* Allow shadows to extend beyond container */
+  min-height: 120px; /* Reserve space for slide-down animations without affecting layout */
 }
 
-.toast-container-inner {
-  // pointer-events: none;
-  position: relative;
-  height: 100%;
-  width: 100%;
+/* Enable smooth layout animations */
+.toast-container {
+  /* Use CSS layout transitions for smoother animations */
+  contain: layout;
 }
+
+/* toast-container-inner not needed with flexbox approach */
 
 .toast {
-  /* Positioning and layout */
-  position: absolute;
-  z-index: 9999;
-  display: none;
+  /* Clean flexbox positioning */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  pointer-events: auto;
 
   /* Sizing and spacing */
   max-width: 322px;
@@ -56,14 +61,31 @@ $error-dark-color: #af2f0d;
 
   /* Typography and alignment */
   text-align: left;
-
-  /* Flexbox layout */
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  /* Interactive */
   cursor: pointer;
+
+  /* Smooth animations for all state changes including layout changes */
+  transform: translateX(-400px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  &.show {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  &.hide {
+    transform: translateX(-400px);
+    opacity: 0;
+  }
+
+  &.hide-down {
+    transform: translateY(100px) !important;
+    opacity: 0 !important;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  }
+
+/* Collapse class no longer needed - using translateY instead */
 
   /* Span elements */
   span {
@@ -166,19 +188,28 @@ $error-dark-color: #af2f0d;
 
 .remove-all-toasts {
   position: fixed;
-  display: none;
-  bottom: 10px;
+  bottom: 24px;
+  left: 350px;
   z-index: 9999;
   background: none;
-  border: none;
-  color: #005965;
-  cursor: pointer;
-
   border: 1px solid #005965;
   border-radius: 4px;
-  padding: 4px 8px;
+  padding: 8px 12px;
+  color: #005965;
+  cursor: pointer;
+  font-size: 0.875rem;
 
-  transition: all 0.15s ease;
+  /* Smooth show/hide animation */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 
   &:hover {
     background: #005965;

@@ -1,29 +1,24 @@
-<button class="remove-all-toasts" (click)="removeAllToasts()" [style.left]="left + 'px'">
+<button 
+  class="remove-all-toasts" 
+  [class.show]="toasts.length > 1"
+  (click)="removeAllToasts()">
   Remove all toasts
 </button>
-<div class="toast-container">
-  <div class="toast-container-inner">
-    @for (toast of toasts.reverse(); track toast._?.id) {
 
+<div class="toast-container">
+  @for (toast of toasts; track toast._?.id) {
     <div
-      #elementToCheck
       [id]="toast._?.id"
-      [ngClass]="[
-        'toast',
-        toast.type,
-        toast.style,
-        toast.outline ? 'outline' : '',
-        toast.dark ? 'dark' : ''
-      ]"
-      [style.bottom]="bottom + 'px'"
-      [style.left]="left + 'px'"
+      [class]="getToastClasses(toast)"
+      (click)="removeToast(toast._?.id!)"
+      (mouseenter)="onToastHover(true)"
+      (mouseleave)="onToastHover(false)"
     >
       @if (toast.icon) {
-      <mat-icon fontSet="material-icons-round" class="toast-icon">{{ toast.icon }}</mat-icon>
+        <mat-icon fontSet="material-icons-round" class="toast-icon">{{ getToastIcon(toast.type) }}</mat-icon>
       }
-      <span class="klabel-huge">{{ toast.text }}</span>
+      <span class="klabel-huge">{{ toast._?.displayText }}</span>
       <span class="klabel-huge full-text">{{ toast.text }}</span>
     </div>
-    }
-  </div>
+  }
 </div>
