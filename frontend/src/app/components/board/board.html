@@ -15,8 +15,9 @@
       </div>
       <div class="filtering-content">
         <div class="sort-options">
-          <label for="sort-options">Sort by:</label>
+          <p>Sort by:</p>
           <div
+            id="sort-options"
             class="custom-select"
             (click)="toggleSortDropdown()"
             [class.open]="isSortDropdownOpen"
@@ -66,6 +67,7 @@
         </div>
       </div>
     </div>
+    @if (isMobileView()) {
     <div class="mobile-search">
       <app-search
         class="search-bar"
@@ -74,6 +76,7 @@
         placeholder="Search tasks"
       ></app-search>
     </div>
+    }
     <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
   </div>
 
