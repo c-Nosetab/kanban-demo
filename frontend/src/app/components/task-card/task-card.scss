@@ -238,6 +238,13 @@
   }
   
   .task-card {
+    // Prevent text selection on mobile to avoid interference with drag
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    
     // Visual feedback during long press
     &.long-pressing {
       transform: scale(0.98);
@@ -257,19 +264,31 @@
       }
       
       &::after {
-        content: "Drag enabled - tap and hold to reactivate";
+        content: "✓ Drag enabled - Now draggable!";
         position: absolute;
-        bottom: -24px;
+        top: -32px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 0.7rem;
-        color: #4caf50;
-        background: white;
-        padding: 2px 6px;
+        font-size: 0.75rem;
+        color: white;
+        background: #4caf50;
+        padding: 4px 8px;
         border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         white-space: nowrap;
         z-index: 1000;
+        font-weight: 500;
+        
+        // Add arrow pointing down
+        &::before {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 4px solid transparent;
+          border-top-color: #4caf50;
+        }
       }
     }
   }

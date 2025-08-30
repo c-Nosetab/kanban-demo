@@ -51,6 +51,10 @@ export class TaskCardComponent implements OnInit {
   }
 
   handleTaskClick(): void {
+    // Don't handle click if drag is enabled or we're in the middle of a long press
+    if (this.isDragEnabled || this.isLongPressing) {
+      return;
+    }
     this.taskView.emit(this.task);
   }
 
@@ -159,6 +163,8 @@ export class TaskCardComponent implements OnInit {
       return;
     }
 
+    // Prevent default behavior that might interfere with dragging
+    event.preventDefault();
     this.startLongPress();
   }
 
@@ -185,20 +191,53 @@ export class TaskCardComponent implements OnInit {
     this.isLongPressing = true;
     
     this.longPressTimer = window.setTimeout(() => {
-      // Long press detected - enable drag
+      // Long press detected - enable drag immediately
       this.isDragEnabled = true;
       this.dragEnabledChange.emit(true);
       
       // Visual feedback for successful long press
       this.elementRef.nativeElement.classList.add('drag-ready');
       
-      // Auto-disable drag after a few seconds if no drag starts
+      console.log('Long press detected - drag enabled for task:', this.task.id);
+      
+      // Trigger drag immediately by simulating the drag start
+      this.triggerDragStart();
+      
+      // Auto-disable drag after 8 seconds if drag hasn't completed
       setTimeout(() => {
         if (this.isDragEnabled) {
           this.disableDrag();
         }
-      }, 3000);
+      }, 8000);
     }, this.longPressDuration);
+  }
+
+  private triggerDragStart(): void {
+    // Add a small delay to ensure the drag is properly enabled first
+    setTimeout(() => {
+      const cardElement = this.elementRef.nativeElement.querySelector('.task-card');
+      if (cardElement) {
+        // Create and dispatch a mouse event to start dragging
+        const mouseDownEvent = new MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          clientX: cardElement.getBoundingClientRect().left + cardElement.offsetWidth / 2,
+          clientY: cardElement.getBoundingClientRect().top + cardElement.offsetHeight / 2
+        });
+        cardElement.dispatchEvent(mouseDownEvent);
+        
+        // Immediately follow with mouse move to initiate drag
+        setTimeout(() => {
+          const mouseMoveEvent = new MouseEvent('mousemove', {
+            bubbles: true,
+            cancelable: true,
+            clientX: cardElement.getBoundingClientRect().left + cardElement.offsetWidth / 2,
+            clientY: cardElement.getBoundingClientRect().top + cardElement.offsetHeight / 2 + 5
+          });
+          document.dispatchEvent(mouseMoveEvent);
+        }, 50);
+      }
+    }, 100);
   }
 
   private cancelLongPress(): void {

@@ -107,6 +107,7 @@ export class ColumnComponent {
   }
 
   onTaskDragEnabledChange(taskId: number, isEnabled: boolean): void {
+    console.log('Task drag enabled change:', taskId, isEnabled);
     if (isEnabled) {
       this.dragEnabledTasks.add(taskId);
     } else {

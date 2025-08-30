@@ -32,8 +32,9 @@ app.use('/api', routes);
 cronService.initialize();
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.info(`🚀 Server running on http://localhost:${PORT}`);
+  console.info(`🌐 Network: http://192.168.50.51:${PORT}`);
   console.info(`🔒 CORS enabled - Allowed origin: ${process.env['FRONTEND_ORIGIN'] || 'http://localhost:4200'}`);
   console.info(`⏱️  Rate limiting: ${process.env['RATE_LIMIT_MAX_REQUESTS'] || 100} requests per ${Math.ceil((parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000 / 60))} minutes`);
   console.info(`🔄 Cron job active: Tasks will reset every 20 minutes`);
