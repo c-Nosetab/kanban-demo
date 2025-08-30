@@ -38,7 +38,11 @@ export class BoardComponent implements OnInit {
     this.tasks$,
     this.filters$
   ]).pipe(
-    map(([tasks, filters]) => this.computeColumns(tasks, filters))
+    map(([tasks, filters]) => {
+      // Clear new task animations whenever filters change
+      this.newTaskIds.clear();
+      return this.computeColumns(tasks, filters);
+    })
   );
 
   private searchSubject = new Subject<string>();
