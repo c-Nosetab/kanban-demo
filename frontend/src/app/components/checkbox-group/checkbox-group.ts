@@ -15,7 +15,9 @@ export class CheckboxGroup {
   @Input() selectedOptions: string[] = [];
   @Output() optionSelected = new EventEmitter<{ option: string, isSelected: boolean }>();
 
-  onOptionSelected(value: string): void {
+  onOptionSelected(value: string, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
     const isSelected = this.selectedOptions.includes(value);
 
     if (isSelected) {

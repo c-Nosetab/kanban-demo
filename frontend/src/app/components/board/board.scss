@@ -242,6 +242,10 @@
 
 
 @media (max-width: 768px) {
+  .desktop-add-task-btn {
+    display: none;
+  }
+
   .board {
     grid-template-columns: 1fr;
     gap: 15px;
@@ -259,7 +263,25 @@
     align-items: stretch;
 
     .mobile-search {
-      display: block;
+      display: flex !important;
+      flex-direction: row;
+      gap: 4px;
+      align-items: center;
+
+      .search-bar {
+        display: block;
+
+        flex: 1;
+      }
+
+      .mobile-add-task-btn {
+        margin-top: 0;
+        font-size: 12px;
+        padding: 12px 4px;
+        display: block;
+        width: 30%;
+        height: 100%;
+      }
     }
 
     .add-task-btn {
@@ -267,6 +289,7 @@
     }
 
     .search-and-filtering {
+      width: 100%;
       flex-direction: column;
       gap: 0;
       border: 1px solid #e0e0e0;
@@ -378,12 +401,6 @@
       .desktop-search {
         display: none;
       }
-    }
-
-
-
-    .search-bar {
-      width: 100%;
     }
 
     .add-task-btn {

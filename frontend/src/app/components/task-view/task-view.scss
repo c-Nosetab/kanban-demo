@@ -13,6 +13,8 @@
   width: 100%;
 
   .task-title {
+    min-width: 70%;
+    flex: 1;
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
@@ -21,12 +23,14 @@
 
   .task-status {
     // margin-right: 1rem;
+    white-space: nowrap;
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-right: 1rem;
 
     &.status-todo {
       background-color: #e3f2fd;
@@ -137,12 +141,12 @@
     align-items: center;
 
     .task-title {
-      font-size: 1.1rem;
+      font-size: 1.4rem;
     }
 
     .task-status {
-      font-size: 0.8rem;
-      margin-right: 24px;
+      font-size: 0.7rem;
+      // margin-right: 24px;
     }
   }
 
@@ -182,7 +186,23 @@
         font-size: 0.8rem;
       }
     }
+  }
+}
 
+
+@media (max-width: 480px) {
+  .task-header {
+    flex-wrap: wrap;
+
+    .task-title {
+      // font-size: 1.4rem;
+    }
+
+    .task-status {
+      // font-size: 0.6rem;
+      // padding: 0.3rem 0.6rem;
+      // border: 1px solid red;
+    }
   }
 }
 

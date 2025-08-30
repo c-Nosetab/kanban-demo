@@ -75,9 +75,10 @@
         [value]="searchValue"
         placeholder="Search tasks"
       ></app-search>
+      <button class="add-task-btn mobile-add-task-btn" (click)="onAddTask()">+ Add Task</button>
     </div>
     }
-    <button class="add-task-btn" (click)="onAddTask()">+ Add Task</button>
+    <button class="add-task-btn desktop-add-task-btn" (click)="onAddTask()">+ Add Task</button>
   </div>
 
   <div class="board" cdkDropListGroup>

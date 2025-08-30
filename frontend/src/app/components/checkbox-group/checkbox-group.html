@@ -5,7 +5,7 @@
     <div
       class="checkbox-option"
       [class.checked]="selectedOptions.includes(option.value)"
-      (click)="onOptionSelected(option.value)"
+      (click)="onOptionSelected(option.value, $event)"
     >
       <mat-icon class="checkbox-icon checked" fontSet="material-icons-round"> check_box </mat-icon>
 

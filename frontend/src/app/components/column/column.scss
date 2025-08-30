@@ -30,7 +30,18 @@
     }
 
     .column-header {
+      // no select text
+      user-select: none;
+      //no tap highlight
       border-bottom: none;
+      -webkit-tap-highlight-color: transparent;
+
+      #column-title {
+        // no select text
+        user-select: none;
+        //no tap highlight
+        -webkit-tap-highlight-color: transparent;
+      }
     }
 
     // Show visual indicator when dragging over collapsed column
@@ -125,7 +136,7 @@
     padding: 8px;
     margin: -8px -8px 8px -8px; // Expand clickable area beyond visual boundaries
     // border-radius: 8px;
-    transition: background-color 0.2s ease;
+    // transition: background-color 0.2s ease;
     border: none;
 
     &:hover {
@@ -133,7 +144,7 @@
     }
 
     :active {
-      background-color: rgba(63, 81, 181, 0.1);
+      // background-color: rgba(63, 81, 181, 0.1);
       // transform: scale(0.98);
     }
   }
