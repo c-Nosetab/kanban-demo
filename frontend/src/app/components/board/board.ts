@@ -341,7 +341,11 @@ export class BoardComponent implements OnInit, AfterViewInit {
 
   onDragStart(): void {
     this.isDragging = true;
-    // Don't collapse columns immediately - wait for drag to leave bounds
+
+    // On mobile, ensure all columns start collapsed when drag begins
+    if (window.innerWidth < 768) {
+      this.initializeMobileColumnState();
+    }
   }
 
   onDragEnd(): void {
@@ -350,16 +354,29 @@ export class BoardComponent implements OnInit, AfterViewInit {
     this.isDragging = false;
     this.clearExpandTimer();
 
+    // On mobile, ensure only the target column is expanded
+    if (window.innerWidth < 768 && targetColumn) {
+      // Collapse all columns first
+      ['todo', 'in-progress', 'done'].forEach(status => {
+        this.collapsedColumns.add(status);
+      });
+
+      // Then expand only the target column
+      this.collapsedColumns.delete(targetColumn);
+    }
+
     // Clear state after a short delay to allow drop handlers to complete
     setTimeout(() => {
-      this.collapsedColumns.clear();
       this.hoveringColumn = null;
       this.draggedFromColumn = null;
       this.dragHoveringColumn = null;
 
       // On mobile, scroll to the target column after drop
+      // Wait for column expansion animations to complete (300ms) + extra buffer
       if (window.innerWidth < 768 && targetColumn) {
-        this.scrollToColumn(targetColumn);
+        setTimeout(() => {
+          this.scrollToColumn(targetColumn);
+        }, 400); // 300ms for CSS transitions + 100ms buffer
       }
     }, 100);
   }
@@ -388,32 +405,11 @@ export class BoardComponent implements OnInit, AfterViewInit {
                              dragPosition.y > rect.bottom;
 
       if (isOutsideColumn) {
-        // First time leaving original column - collapse all columns initially
-        if (this.collapsedColumns.size === 0) {
-          ['todo', 'in-progress', 'done'].forEach(status => {
-            this.collapsedColumns.add(status);
-          });
-        } else {
-          // Subsequent movements - preserve manually expanded columns
-          const expandedColumns = new Set<string>();
-
-          // Check which columns are currently expanded (not in collapsed set)
-          ['todo', 'in-progress', 'done'].forEach(status => {
-            if (!this.collapsedColumns.has(status)) {
-              expandedColumns.add(status);
-            }
-          });
-
-          // Collapse all columns
-          ['todo', 'in-progress', 'done'].forEach(status => {
-            this.collapsedColumns.add(status);
-          });
-
-          // But immediately restore any that were manually expanded
-          expandedColumns.forEach(status => {
-            this.collapsedColumns.delete(status);
-          });
-        }
+        // On mobile, collapse all columns when leaving original column
+        // This ensures only one column can be expanded at a time
+        ['todo', 'in-progress', 'done'].forEach(status => {
+          this.collapsedColumns.add(status);
+        });
       }
     }
 
@@ -546,16 +542,25 @@ export class BoardComponent implements OnInit, AfterViewInit {
       this.clearExpandTimer();
       this.hoveringColumn = columnStatus;
 
-      // Start 2-second timer to expand this column
+      // Start timer to expand this column (only one at a time)
       this.expandTimer = setTimeout(() => {
+        // Collapse all other columns first
+        ['todo', 'in-progress', 'done'].forEach(status => {
+          if (status !== columnStatus) {
+            this.collapsedColumns.add(status);
+          }
+        });
+
+        // Then expand the target column
         this.collapsedColumns.delete(columnStatus);
         console.log('Expanded column:', columnStatus);
+
         // Force CDK to recalculate drop zones after expansion
         this.cdr.detectChanges();
         setTimeout(() => {
           this.refreshCdkDropZones();
         }, 50);
-      }, 2000);
+      }, 1000); // Reduced from 2000ms to 1000ms for better responsiveness
     }
   }
 
@@ -618,7 +623,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
       this.taskService.moveTask(taskId, actualNewStatus, finalIndex).subscribe({
         next: () => {
           this.toastService.addToast({
-            text: 'Task moved successfully into ' + actualNewStatus + '!',
+            text: 'Task moved successfully!',
             type: 'success',
             delayAdd: true,
           });
@@ -733,9 +738,20 @@ export class BoardComponent implements OnInit, AfterViewInit {
   }
 
   private scrollToColumn(columnStatus: string): void {
+    console.log('Scrolling to column:', columnStatus);
+    // Force a DOM update by triggering change detection
+    this.cdr.detectChanges();
+
+    if (this.manuallyCollapsedColumns.has(columnStatus)) {
+      this.manuallyCollapsedColumns.delete(columnStatus);
+    }
+
     // Find the target column element
     const columnElement = document.querySelector(`[data-column="${columnStatus}"]`) as HTMLElement;
     if (columnElement) {
+      // Force a reflow to ensure we get the current position
+      const height = columnElement.offsetHeight;
+
       // Smooth scroll to bring the column to the top of the viewport
       const rect = columnElement.getBoundingClientRect();
       const targetY = window.scrollY + rect.top - 20; // 20px padding from top
@@ -748,10 +764,28 @@ export class BoardComponent implements OnInit, AfterViewInit {
   }
 
   toggleColumnCollapse(columnStatus: string): void {
-    if (this.manuallyCollapsedColumns.has(columnStatus)) {
-      this.manuallyCollapsedColumns.delete(columnStatus);
+    // On mobile, implement "only one column expanded at a time" behavior
+    if (window.innerWidth < 768) {
+      if (this.collapsedColumns.has(columnStatus)) {
+        // Expanding this column - collapse all others first
+        ['todo', 'in-progress', 'done'].forEach(status => {
+          if (status !== columnStatus) {
+            this.collapsedColumns.add(status);
+          }
+        });
+        // Then expand the target column
+        this.collapsedColumns.delete(columnStatus);
+      } else {
+        // Collapsing this column - just add it to collapsed set
+        this.collapsedColumns.add(columnStatus);
+      }
     } else {
-      this.manuallyCollapsedColumns.add(columnStatus);
+      // Desktop behavior - use manual collapse state
+      if (this.manuallyCollapsedColumns.has(columnStatus)) {
+        this.manuallyCollapsedColumns.delete(columnStatus);
+      } else {
+        this.manuallyCollapsedColumns.add(columnStatus);
+      }
     }
     this.cdr.detectChanges();
   }
@@ -763,6 +797,19 @@ export class BoardComponent implements OnInit, AfterViewInit {
   // Initialize mobile state tracking on component init
   ngAfterViewInit(): void {
     this.wasMobileView = this.isMobileView();
+
+    // On mobile, start with all columns collapsed
+    if (this.isMobileView()) {
+      this.initializeMobileColumnState();
+    }
+  }
+
+  private initializeMobileColumnState(): void {
+    // Collapse all columns on mobile
+    ['todo', 'in-progress', 'done'].forEach(status => {
+      this.collapsedColumns.add(status);
+    });
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {

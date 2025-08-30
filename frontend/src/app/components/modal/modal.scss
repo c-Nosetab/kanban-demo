@@ -137,6 +137,10 @@
   padding: 16px;
   border-top: 1px solid #eee;
 
+  &.loading {
+    border-top: none;
+  }
+
   &:focus {
     outline: none;
     border-color: #2196f3;
@@ -145,6 +149,27 @@
 
   &.error {
     border-color: #DE5253;
+  }
+}
+
+.footer-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  background: transparent;
+  z-index: 1000;
+  pointer-events: none;
+
+  transition: background 0.2s ease;
+
+  &.loading {
+    pointer-events: auto;
+    z-index: 9999;
+    background: white;
   }
 }
 
@@ -193,7 +218,7 @@
 }
 
 .confirm-btn {
-  background-color: #39d03e;
+  background-color: #2096F3;
   color: #fff;
 
   &.warning {

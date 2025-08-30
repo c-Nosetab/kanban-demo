@@ -216,3 +216,25 @@ $error-dark-color: #af2f0d;
     color: white;
   }
 }
+
+@media (max-width: 768px) {
+  .remove-all-toasts {
+    display: none;
+  }
+  .toast-container {
+    left: 16px;
+    scale: 0.8;
+    transform-origin: bottom left;
+  }
+}
+
+@media (max-width: 480px) {
+  .remove-all-toasts {
+    display: none;
+  }
+  .toast-container {
+    left: 8px;
+    scale: 0.7;
+    transform-origin: bottom left;
+  }
+}

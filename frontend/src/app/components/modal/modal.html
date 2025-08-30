@@ -19,16 +19,22 @@
         }
       </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" [class.loading]="isLoading">
+      <div class="footer-mask" [class.loading]="isLoading"></div>
       <div class="modal-actions">
-        <button class="cancel-btn btn" [class.warning]="isWarning" (click)="handleCancel()">
+        <button
+          [disabled]="isLoading"
+          class="cancel-btn btn"
+          [class.warning]="isWarning"
+          (click)="handleCancel()"
+        >
           {{ cancelText }}
         </button>
         <button
           class="confirm-btn btn"
           [class.warning]="isWarning"
           (click)="handleConfirm()"
-          [disabled]="confirmDisabled"
+          [disabled]="confirmDisabled || isLoading"
         >
           {{ confirmText }}
         </button>

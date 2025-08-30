@@ -393,6 +393,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   .sort-options {
     label {
