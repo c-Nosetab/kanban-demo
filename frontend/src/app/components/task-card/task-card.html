@@ -2,12 +2,12 @@
   class="task-card"
   [class.overdue]="isOverdue()"
   [class.done]="isDone()"
-  [class.drag-ready]="isDragEnabled && isMobile"
-  [class.long-pressing]="isLongPressing"
   (click)="handleTaskClick()"
 >
   <div class="task-header">
-    <h4 class="task-title" [class.done]="isDone()">{{ task.title }}</h4>
+    <h4 class="task-title" [class.done]="isDone()">
+      {{ task.title }}
+    </h4>
     <div class="task-actions">
       <button class="edit-btn" (click)="onEdit(); $event.stopPropagation()" title="Edit task">
         ✏️

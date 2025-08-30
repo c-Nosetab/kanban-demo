@@ -31,6 +31,8 @@
     cursor: grab;
   }
 
+  // CDK drag styling will be handled by the default CDK classes
+
   &.overdue {
     border-left-color: #f44336;
     background-color: #ffeaea;
@@ -236,7 +238,7 @@
   .drag-handle {
     opacity: 1;
   }
-  
+
   .task-card {
     // Prevent text selection on mobile to avoid interference with drag
     -webkit-user-select: none;
@@ -245,51 +247,19 @@
     user-select: none;
     -webkit-touch-callout: none;
     
+    // Allow touch events but prevent scrolling when dragging
+    touch-action: manipulation;
+
     // Visual feedback during long press
     &.long-pressing {
       transform: scale(0.98);
       opacity: 0.8;
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
-    
-    // Visual feedback when drag is enabled
+
+    // Visual feedback when drag is enabled (brief flash only)
     &.drag-ready {
-      border-color: #4caf50 !important;
-      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
-      
-      .drag-handle {
-        color: #4caf50;
-        opacity: 1;
-        animation: pulse 1.5s infinite;
-      }
-      
-      &::after {
-        content: "✓ Drag enabled - Now draggable!";
-        position: absolute;
-        top: -32px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.75rem;
-        color: white;
-        background: #4caf50;
-        padding: 4px 8px;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        white-space: nowrap;
-        z-index: 1000;
-        font-weight: 500;
-        
-        // Add arrow pointing down
-        &::before {
-          content: '';
-          position: absolute;
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          border: 4px solid transparent;
-          border-top-color: #4caf50;
-        }
-      }
+      animation: dragActivated 0.3s ease-out;
     }
   }
 }
@@ -300,5 +270,17 @@
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@keyframes dragActivated {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
   }
 }
