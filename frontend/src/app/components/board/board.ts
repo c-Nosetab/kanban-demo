@@ -306,27 +306,44 @@ export class BoardComponent implements OnInit {
   }
 
   onTaskMoved({ taskId, newIndex, newStatus, oldIndex }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number }): void {
-    // Don't do optimistic updates - let the backend handle the reordering
-    // and then reload to get the correct state
-    this.taskService.moveTask(taskId, newStatus, newIndex).subscribe({
-      next: () => {
-        this.toastService.addToast({
-          text: 'Task moved successfully!',
-          type: 'success',
-          delayAdd: true,
-        });
-        this.loadTasks();
-      },
-      error: (error) => {
-        this.toastService.addToast({
-          text: `Failed to move task: ${error.message}`,
-          type: 'error',
-          delayAdd: false,
-        });
-        // Reload tasks to restore correct state
-        this.loadTasks();
-      }
-    });
+    // Perform optimistic update to prevent visual jump
+    const currentTasks = [...this.tasks$.value];
+    const taskToMove = currentTasks.find(task => task.id === taskId);
+    
+    if (taskToMove) {
+      // Update the task's status and position optimistically
+      const updatedTask = { ...taskToMove, status: newStatus as 'todo' | 'in-progress' | 'done', order: newIndex };
+      const updatedTasks = currentTasks.map(task => 
+        task.id === taskId ? updatedTask : task
+      );
+      
+      // Update the UI immediately
+      this.tasks$.next(updatedTasks);
+      
+      // Then make the API call
+      this.taskService.moveTask(taskId, newStatus, newIndex).subscribe({
+        next: () => {
+          this.toastService.addToast({
+            text: 'Task moved successfully!',
+            type: 'success',
+            delayAdd: true,
+          });
+          // Refresh from server to get correct order values, but don't show loading
+          this.taskService.getTasks().subscribe((tasks) => {
+            this.tasks$.next(tasks);
+          });
+        },
+        error: (error) => {
+          this.toastService.addToast({
+            text: `Failed to move task: ${error.message}`,
+            type: 'error',
+            delayAdd: false,
+          });
+          // Revert to original state by reloading
+          this.loadTasks();
+        }
+      });
+    }
   }
 
   onResetTasks(): void {
