@@ -2,7 +2,7 @@
 
 # Start the backend server in the background
 echo "Starting backend server..."
-cd /app/backend && node dist/server.js &
+cd /app/backend && PORT=3000 node dist/server.js &
 BACKEND_PID=$!
 
 # Wait and check if backend started successfully
