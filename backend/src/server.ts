@@ -22,7 +22,9 @@ app.set('trust proxy', 1);
 
 // Apply middleware
 app.use(cors(corsOptions));
-app.use(limiter);
+if (process.env['NODE_ENV'] !== 'development' && process.env['NODE_ENV'] !== 'local') {
+  app.use(limiter);
+}
 app.use(express.json());
 
 // Mount API routes

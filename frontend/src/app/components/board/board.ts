@@ -57,7 +57,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
   isFilteringExpanded = false;
   curSortDirection: 'asc' | 'desc' = 'asc';
 
-  // Mobile drag-and-drop state
+    // Mobile drag-and-drop state
   isDragging = false;
   collapsedColumns: Set<string> = new Set();
   expandTimer: any = null;
@@ -69,6 +69,9 @@ export class BoardComponent implements OnInit, AfterViewInit {
 
   // Prevent rapid successive drag operations
   private isProcessingMove = false;
+
+  // Track if this is the first drag operation to handle CDK initialization
+  private isFirstDrag = true;
 
   // Manual column collapse state (separate from drag-induced collapse)
   manuallyCollapsedColumns: Set<string> = new Set();
@@ -146,6 +149,9 @@ export class BoardComponent implements OnInit, AfterViewInit {
     // Load all tasks with default parameters to get everything
     this.taskService.getTasks().subscribe((tasks) => {
       this.tasks$.next(tasks);
+
+      // Ensure CDK drag-and-drop is properly initialized after data loads
+        this.cdr.detectChanges();
     });
   }
 
@@ -676,6 +682,12 @@ export class BoardComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Ensure data is stable before processing the first drag operation
+    if (this.isFirstDrag) {
+      // Force a change detection cycle to ensure CDK is ready
+      this.cdr.detectChanges();
+    }
+
     // Perform optimistic update to prevent visual jump
     const currentTasks = [...this.tasks$.value];
     const taskToMove = currentTasks.find(task => task.id === taskId);
@@ -705,6 +717,11 @@ export class BoardComponent implements OnInit, AfterViewInit {
 
       // Update the UI immediately for smooth CDK behavior
       this.tasks$.next(updatedTasks);
+
+      // Mark that we've had at least one drag operation
+      if (this.isFirstDrag) {
+        this.isFirstDrag = false;
+      }
 
       // Set processing flag
       this.isProcessingMove = true;
@@ -928,6 +945,9 @@ export class BoardComponent implements OnInit, AfterViewInit {
     if (this.isMobileView()) {
       this.initializeMobileColumnState();
     }
+
+    // Ensure CDK drag-and-drop is properly initialized
+    this.initializeCDKDragDrop();
   }
 
   private initializeMobileColumnState(): void {
@@ -937,6 +957,13 @@ export class BoardComponent implements OnInit, AfterViewInit {
     });
     this.expandedColumnSubject.next(null);
     this.cdr.detectChanges();
+  }
+
+  private initializeCDKDragDrop(): void {
+    // Force change detection to ensure CDK drag-and-drop is properly initialized
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 100);
   }
 
   ngOnDestroy(): void {
