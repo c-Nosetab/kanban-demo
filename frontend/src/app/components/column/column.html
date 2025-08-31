@@ -24,6 +24,7 @@
     class="column-content"
     cdkDropList
     [cdkDropListData]="status"
+    cdkDropListOrientation="vertical"
     (cdkDropListDropped)="onTaskDrop($event)"
     (cdkDropListEntered)="onDragOver($event)"
     (cdkDropListExited)="onDragLeave()"

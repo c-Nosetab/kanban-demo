@@ -20,7 +20,6 @@ export class ColumnComponent {
   @Input() isCollapsed: boolean = false;
   @Input() isDragHovering: boolean = false;
   @Input() showMobileToggle: boolean = false;
-
   @Output() taskEdit = new EventEmitter<Task>();
   @Output() taskDelete = new EventEmitter<Task>();
   @Output() taskMove = new EventEmitter<{ taskId: number, oldIndex: number, newIndex: number, oldStatus: string, newStatus: string }>();
@@ -50,10 +49,11 @@ export class ColumnComponent {
     // Extract task ID from the dragged item
     const taskId = parseInt(event.item.element.nativeElement.id, 10);
 
-    // Get the status from the container data (now it's the status string)
+    // Get the status from the container data
     const oldStatus = event.previousContainer.data;
     const newStatus = event.container.data;
 
+    // Emit the move event for server synchronization
     this.taskMove.emit({
       taskId: taskId,
       oldIndex: event.previousIndex,

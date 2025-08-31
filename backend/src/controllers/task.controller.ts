@@ -140,7 +140,10 @@ class TaskController {
       const newOrder = QueryParser.parseNumber(order);
 
       const updatedTask = Task.moveTask(taskId, newStatus, newOrder);
-      res.json(updatedTask);
+
+      // Return all tasks to ensure frontend has correct ordering
+      const allTasks = Task.getAllTasks();
+      res.json({ movedTask: updatedTask, allTasks });
     } catch (error) {
       if ((error as Error).message === 'Task not found') {
         res.status(404).json({ error: (error as Error).message });

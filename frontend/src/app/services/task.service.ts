@@ -89,8 +89,8 @@ export class TaskService {
     );
   }
 
-  moveTask(id: number, newStatus: string, newIndex: number): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/tasks/${id}/move`, { status: newStatus, order: newIndex }).pipe(
+  moveTask(id: number, newStatus: string, newIndex: number): Observable<{ movedTask: Task, allTasks: Task[] }> {
+    return this.http.put<{ movedTask: Task, allTasks: Task[] }>(`${this.apiUrl}/tasks/${id}/move`, { status: newStatus, order: newIndex }).pipe(
       catchError(error => {
         this.errorHandler.handleError(error, `Moving task ${id}`);
         return throwError(() => error);

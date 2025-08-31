@@ -67,6 +67,9 @@ export class BoardComponent implements OnInit, AfterViewInit {
   draggedFromColumn: string | null = null;
   dragHoveringColumn: string | null = null;
 
+  // Prevent rapid successive drag operations
+  private isProcessingMove = false;
+
   // Manual column collapse state (separate from drag-induced collapse)
   manuallyCollapsedColumns: Set<string> = new Set();
 
@@ -153,21 +156,24 @@ export class BoardComponent implements OnInit, AfterViewInit {
     sortDirection: 'asc' | 'desc';
   }): any[] {
     const filtered = this.applyFilters(tasks, filters);
+
+    // Always sort by order within each column for proper drag-and-drop positioning
+    // The global sort is applied to the filtered list, but within columns we need order-based sorting
     return [
       {
         title: 'To Do',
         status: 'todo',
-        tasks: filtered.filter(task => task.status === 'todo')
+        tasks: filtered.filter(task => task.status === 'todo').sort((a, b) => a.order - b.order)
       },
       {
         title: 'In Progress',
         status: 'in-progress',
-        tasks: filtered.filter(task => task.status === 'in-progress')
+        tasks: filtered.filter(task => task.status === 'in-progress').sort((a, b) => a.order - b.order)
       },
       {
         title: 'Done',
         status: 'done',
-        tasks: filtered.filter(task => task.status === 'done')
+        tasks: filtered.filter(task => task.status === 'done').sort((a, b) => a.order - b.order)
       },
     ];
   }
@@ -663,7 +669,12 @@ export class BoardComponent implements OnInit, AfterViewInit {
     return this.collapsedColumns.has(columnStatus) || this.manuallyCollapsedColumns.has(columnStatus);
   }
 
-  onTaskMoved({ taskId, newIndex, newStatus, oldIndex }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number }): void {
+    onTaskMoved({ taskId, newIndex, newStatus, oldIndex, oldStatus }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number, oldStatus: string }): void {
+
+    // Prevent rapid successive drag operations
+    if (this.isProcessingMove) {
+      return;
+    }
 
     // Perform optimistic update to prevent visual jump
     const currentTasks = [...this.tasks$.value];
@@ -683,27 +694,34 @@ export class BoardComponent implements OnInit, AfterViewInit {
         finalIndex = tasksInTargetColumn.length; // Place at end
       }
 
+      // Store original state for potential rollback
+      const originalTasks = [...currentTasks];
+
       // Update the task's status and position optimistically
       const updatedTask = { ...taskToMove, status: actualNewStatus as 'todo' | 'in-progress' | 'done', order: finalIndex };
       const updatedTasks = currentTasks.map(task =>
         task.id === taskId ? updatedTask : task
       );
 
-      // Update the UI immediately
+      // Update the UI immediately for smooth CDK behavior
       this.tasks$.next(updatedTasks);
+
+      // Set processing flag
+      this.isProcessingMove = true;
 
       // Then make the API call
       this.taskService.moveTask(taskId, actualNewStatus, finalIndex).subscribe({
-        next: () => {
+        next: (response: any) => {
           this.toastService.addToast({
             text: 'Task moved successfully into ' + actualNewStatus + '!',
             type: 'success',
             delayAdd: true,
           });
-          // Refresh from server to get correct order values, but don't show loading
-          this.taskService.getTasks().subscribe((tasks) => {
-            this.tasks$.next(tasks);
-          });
+
+          // Update with all tasks from server to ensure correct ordering
+          // This prevents animation jumps while ensuring data consistency
+          this.tasks$.next(response.allTasks);
+          this.isProcessingMove = false;
         },
         error: (error) => {
           this.toastService.addToast({
@@ -711,8 +729,11 @@ export class BoardComponent implements OnInit, AfterViewInit {
             type: 'error',
             delayAdd: false,
           });
-          // Revert to original state by reloading
-          this.loadTasks();
+          // Revert to original state
+          this.tasks$.next(originalTasks);
+
+          // Reset processing flag
+          this.isProcessingMove = false;
         }
       });
     }

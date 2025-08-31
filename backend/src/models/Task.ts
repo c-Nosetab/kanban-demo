@@ -205,7 +205,7 @@ class Task {
     this.tasks.push(newTask);
     this.taskMap.set(newId, newTask);
     this.statusGroups.get('todo')?.add(newId);
-    
+
     return newTask;
   }
 
@@ -222,7 +222,7 @@ class Task {
     }
 
     const updatedTask: TaskType = { ...taskToUpdate, ...updateData };
-    
+
     // Update the task in the array and rebuild indices
     this.tasks[taskIndex] = updatedTask;
     this.taskMap.set(id, updatedTask);
@@ -238,11 +238,11 @@ class Task {
     }
 
     const task = this.tasks[taskIndex]!;
-    
+
     // Remove from indices
     this.taskMap.delete(id);
     this.statusGroups.get(task.status)?.delete(id);
-    
+
     this.tasks.splice(taskIndex, 1);
     return true;
   }
@@ -259,19 +259,16 @@ class Task {
 
     // If moving within the same status
     if (oldStatus === newStatus) {
-      // Reorder tasks within the same column
-      const statusTasks = this.tasks.filter(t => t.status === oldStatus);
-      
-      // Remove the moved task temporarily
-      const otherTasks = statusTasks.filter(t => t.id !== id);
-      
+      // Get all tasks in this status, excluding the moved task
+      const otherTasks = this.tasks.filter(t => t.status === oldStatus && t.id !== id);
+
       // Sort by current order
       otherTasks.sort((a, b) => a.order - b.order);
-      
+
       // Insert the moved task at the new position
       otherTasks.splice(newOrder, 0, { ...task, order: newOrder });
-      
-      // Update all orders to be sequential
+
+      // Update all orders to be sequential (0, 1, 2, 3, ...)
       otherTasks.forEach((t, index) => {
         const taskToUpdate = this.tasks.find(task => task.id === t.id);
         if (taskToUpdate) {
@@ -281,11 +278,11 @@ class Task {
       });
     } else {
       // Moving between different statuses
-      
+
       // Update status groups
       this.statusGroups.get(oldStatus)?.delete(id);
       this.statusGroups.get(newStatus)?.add(id);
-      
+
       // Reorder tasks in the old status (close gaps)
       oldStatusTasks
         .sort((a, b) => a.order - b.order)
@@ -296,13 +293,13 @@ class Task {
             this.taskMap.set(t.id, taskToUpdate);
           }
         });
-      
+
       // Insert task into new status at specified position
       const sortedNewTasks = newStatusTasks.sort((a, b) => a.order - b.order);
-      
+
       // Insert at new position and reorder
       sortedNewTasks.splice(newOrder, 0, { ...task, status: newStatus, order: newOrder });
-      
+
       // Update all orders in new status to be sequential
       sortedNewTasks.forEach((t, index) => {
         const taskToUpdate = this.tasks.find(task => task.id === t.id);
