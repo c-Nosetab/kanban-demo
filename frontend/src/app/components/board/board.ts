@@ -38,6 +38,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
     this.filters$
   ]).pipe(
     map(([tasks, filters]) => {
+      console.log('Computing columns');
       // Clear new task animations whenever filters change
       this.newTaskIds.clear();
       return this.computeColumns(tasks, filters);
@@ -158,24 +159,36 @@ export class BoardComponent implements OnInit, AfterViewInit {
     sortDirection: 'asc' | 'desc';
   }): any[] {
     const filtered = this.applyFilters(tasks, filters);
+    const sorted = this.sortTasks(filtered, filters.sortBy, filters.sortDirection);
 
-    // Always sort by order within each column for proper drag-and-drop positioning
-    // The global sort is applied to the filtered list, but within columns we need order-based sorting
+    const tasksByStatus = sorted.reduce((acc, task) => {
+      acc[task.status] = acc[task.status] || [];
+      acc[task.status].push(task);
+      return acc;
+    }, {} as Record<string, Task[]>);
+
+    const todoTasks = tasksByStatus['todo'] || [];
+    console.log('🚀 - todoTasks:', todoTasks);
+    const inProgressTasks = tasksByStatus['in-progress'] || [];
+    console.log('🚀 - inProgressTasks:', inProgressTasks);
+    const doneTasks = tasksByStatus['done'] || [];
+    console.log('🚀 - doneTasks:', doneTasks);
+
     return [
       {
         title: 'To Do',
         status: 'todo',
-        tasks: filtered.filter(task => task.status === 'todo').sort((a, b) => a.order - b.order)
+        tasks: todoTasks
       },
       {
         title: 'In Progress',
         status: 'in-progress',
-        tasks: filtered.filter(task => task.status === 'in-progress').sort((a, b) => a.order - b.order)
+        tasks: inProgressTasks
       },
       {
         title: 'Done',
         status: 'done',
-        tasks: filtered.filter(task => task.status === 'done').sort((a, b) => a.order - b.order)
+        tasks: doneTasks
       },
     ];
   }
@@ -188,7 +201,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
   }): Task[] {
     let filtered = [...tasks];
 
-    const { search, priorities, sortBy, sortDirection } = filters;
+    const { search, priorities } = filters;
 
     if (search) {
       filtered = filtered.filter(task =>
@@ -203,15 +216,14 @@ export class BoardComponent implements OnInit, AfterViewInit {
       );
     }
 
-    filtered = this.sortTasks(filtered, sortBy, sortDirection);
-
     return filtered;
   }
 
   sortTasks(tasks: Task[], sortBy: keyof Task, sortDirection: 'asc' | 'desc'): Task[] {
+    const clonedTasks = [...tasks];
     if (sortBy === 'priority') {
       const order = ['high', 'medium', 'low'];
-      return tasks.sort((a, b) => {
+      return clonedTasks.sort((a, b) => {
         const aIndex = order.indexOf(a.priority);
         const bIndex = order.indexOf(b.priority);
         return sortDirection === 'asc' ? aIndex - bIndex : bIndex - aIndex;
@@ -219,7 +231,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
     }
 
     if (sortBy === 'dueDate') {
-      return tasks.sort((a, b) => {
+      return clonedTasks.sort((a, b) => {
         const aOption = a?.dueDate || '';
         const bOption = b.dueDate || '';
 
@@ -234,7 +246,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
     }
 
     if (sortBy === 'order') {
-      return tasks.sort((a, b) => {
+      return clonedTasks.sort((a, b) => {
         const aOrder = a.order;
         const bOrder = b.order;
         return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder;
@@ -242,14 +254,14 @@ export class BoardComponent implements OnInit, AfterViewInit {
     }
 
     if (sortBy === 'title') {
-      return tasks.sort((a, b) => {
+      return clonedTasks.sort((a, b) => {
         const aTitle = a.title;
         const bTitle = b.title;
         return sortDirection === 'asc' ? aTitle.localeCompare(bTitle) : bTitle.localeCompare(aTitle);
       });
     }
 
-    return tasks;
+    return clonedTasks;
   }
 
   // #endregion Load and ProcessTasks
@@ -671,21 +683,16 @@ export class BoardComponent implements OnInit, AfterViewInit {
     return this.collapsedColumns.has(columnStatus) || this.manuallyCollapsedColumns.has(columnStatus);
   }
 
-    onTaskMoved({ taskId, newIndex, newStatus, oldIndex, oldStatus }: { taskId: number, newIndex: number, newStatus: string, oldIndex: number, oldStatus: string }): void {
-
+  private generateUpdatedTask(tasks: Task[], taskId: number, newStatus: string, newIndex: number): Task | undefined {
     // Prevent rapid successive drag operations
     if (this.isProcessingMove) {
+      console.log('Early return due to isProcessingMove');
       return;
-    }
-
-    // Debug logging for production issues
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    if (isProduction) {
-      console.log('Task move started:', { taskId, newIndex, newStatus, oldIndex, oldStatus });
     }
 
     // Perform optimistic update to prevent visual jump
     const currentTasks = [...this.tasks$.value];
+
     const taskToMove = currentTasks.find(task => task.id === taskId);
 
     if (taskToMove) {
@@ -709,26 +716,111 @@ export class BoardComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      // Store original state for potential rollback
-      const originalTasks = [...currentTasks];
-
-      // Update the task's status and position optimistically
+            // Update the task's status and position optimistically
       const updatedTask = { ...taskToMove, status: actualNewStatus as 'todo' | 'in-progress' | 'done', order: finalIndex };
-      const updatedTasks = currentTasks.map(task =>
-        task.id === taskId ? updatedTask : task
-      );
 
-            // Update the UI immediately for smooth CDK behavior
-      this.tasks$.next(updatedTasks);
+      return updatedTask;
+    }
 
-      // Set processing flag
-      this.isProcessingMove = true;
+    return undefined;
+  }
+
+  private reorderTasks(tasks: Task[], updatedTask: Task, insertUpdated = false) {
+    const clonedTasks = [...tasks];
+
+    const updatedOrderedTasks: Task[] = [];
+
+    const filteredTasks = clonedTasks.filter(task => task.id !== updatedTask.id);
+
+    filteredTasks.forEach((task, i) => {
+      const taskOrder = task.order;
+
+      let newOrder = taskOrder;
+
+      if (insertUpdated) {
+        newOrder = i >= updatedTask.order ? i + 1 : i;
+      } else {
+        newOrder = i > updatedTask.order ? i - 1 : i;
+      }
+
+      updatedOrderedTasks.push({ ...task, order: newOrder });
+    })
+
+    if (insertUpdated) {
+      updatedOrderedTasks.push(updatedTask);
+    }
+
+    return updatedOrderedTasks;
+  }
+
+  private generateNewTaskLists(updatedTask: Task, oldStatus: string) {
+    const tasks = [...this.tasks$.value].sort((a, b) => a.order - b.order);
+    const newStatus = updatedTask.status;
+
+    const tasksSeparatedByStatus = tasks.reduce((acc, task) => {
+      acc[task.status] = acc[task.status] || [];
+      acc[task.status].push(task);
+      return acc;
+    }, {} as Record<(string), Task[]>);
+
+    const finalTasks = new Map<string, Task[]>();
+
+    const todoModified = newStatus === 'todo' || oldStatus === 'todo';
+    const inProgressModified = newStatus === 'in-progress' || oldStatus === 'in-progress';
+    const doneModified = newStatus === 'done' || oldStatus === 'done';
+
+    if (todoModified) {
+      const todoTasks = this.reorderTasks(tasksSeparatedByStatus['todo'] || [], updatedTask, newStatus === 'todo');
+      finalTasks.set('todo', todoTasks);
+    } else {
+      finalTasks.set('todo', tasksSeparatedByStatus['todo'] || []);
+    }
+
+    if (inProgressModified) {
+      const inProgressTasks = this.reorderTasks(tasksSeparatedByStatus['in-progress'] || [], updatedTask, newStatus === 'in-progress');
+      finalTasks.set('in-progress', inProgressTasks);
+    } else {
+      finalTasks.set('in-progress', tasksSeparatedByStatus['in-progress'] || []);
+    }
+
+    if (doneModified) {
+      const doneTasks = this.reorderTasks(tasksSeparatedByStatus['done'] || [], updatedTask, newStatus === 'done');
+      finalTasks.set('done', doneTasks);
+    } else {
+      finalTasks.set('done', tasksSeparatedByStatus['done'] || []);
+    }
+
+    const finalTasksArray = Array.from(finalTasks.values());
+
+    return finalTasksArray;
+  }
+
+  onTaskMoved(
+    { taskId, newIndex, newStatus, oldStatus }:
+    {
+      taskId: number, newIndex: number, newStatus: string, oldIndex: number, oldStatus: string
+    }
+  ): void {
+    const tasks = [...this.tasks$.value];
+    const originalTasks = [...tasks];
+
+    const updatedTask = this.generateUpdatedTask(tasks, taskId, newStatus, newIndex);
+
+    if (!updatedTask) return;
+
+    const updatedTaskInOrder = this.generateNewTaskLists(updatedTask, oldStatus);
+    const updatedTasks = updatedTaskInOrder.flat();
+
+    this.tasks$.next(updatedTasks);
+
+    // Set processing flag
+    this.isProcessingMove = true;
 
       // Then make the API call
-      this.taskService.moveTask(taskId, actualNewStatus, finalIndex).subscribe({
-                next: (response: any) => {
+      this.taskService.moveTask(taskId, updatedTask.status, updatedTask.order).subscribe({
+        next: (response: any) => {
           this.toastService.addToast({
-            text: 'Task moved successfully into ' + actualNewStatus + '!',
+            text: 'Task moved successfully into ' + updatedTask.status + '!',
             type: 'success',
             delayAdd: true,
           });
@@ -737,6 +829,7 @@ export class BoardComponent implements OnInit, AfterViewInit {
           const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
           if (isProduction) {
+          // TODO - uncomment below after local changes are working properly
             console.log('Production: Applying server response with delay');
             setTimeout(() => {
               this.tasks$.next(response.allTasks);
@@ -762,7 +855,6 @@ export class BoardComponent implements OnInit, AfterViewInit {
           this.isProcessingMove = false;
         }
       });
-    }
   }
 
   onResetTasks(): void {
