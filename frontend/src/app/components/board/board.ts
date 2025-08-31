@@ -678,6 +678,12 @@ export class BoardComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Debug logging for production issues
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    if (isProduction) {
+      console.log('Task move started:', { taskId, newIndex, newStatus, oldIndex, oldStatus });
+    }
+
     // Perform optimistic update to prevent visual jump
     const currentTasks = [...this.tasks$.value];
     const taskToMove = currentTasks.find(task => task.id === taskId);
@@ -694,6 +700,13 @@ export class BoardComponent implements OnInit, AfterViewInit {
       if (this.collapsedColumns.has(actualNewStatus)) {
         const tasksInTargetColumn = currentTasks.filter(task => task.status === actualNewStatus);
         finalIndex = tasksInTargetColumn.length; // Place at end
+      }
+
+      // Check if the task is being dropped in the same position (same column and same order)
+      if (taskToMove.status === actualNewStatus && taskToMove.order === finalIndex) {
+        // No change needed - task is already in the correct position
+        console.log('Task dropped in same position - no API call needed');
+        return;
       }
 
       // Store original state for potential rollback
@@ -713,17 +726,28 @@ export class BoardComponent implements OnInit, AfterViewInit {
 
       // Then make the API call
       this.taskService.moveTask(taskId, actualNewStatus, finalIndex).subscribe({
-        next: (response: any) => {
+                next: (response: any) => {
           this.toastService.addToast({
             text: 'Task moved successfully into ' + actualNewStatus + '!',
             type: 'success',
             delayAdd: true,
           });
 
-          // Update with all tasks from server to ensure correct ordering
-          // This prevents animation jumps while ensuring data consistency
-          this.tasks$.next(response.allTasks);
-          this.isProcessingMove = false;
+          // In production, add a small delay to ensure optimistic update has settled
+          const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+          if (isProduction) {
+            console.log('Production: Applying server response with delay');
+            setTimeout(() => {
+              this.tasks$.next(response.allTasks);
+              this.isProcessingMove = false;
+            }, 50);
+          } else {
+            console.log('Development: Applying server response immediately');
+            // Update with all tasks from server to ensure correct ordering
+            this.tasks$.next(response.allTasks);
+            this.isProcessingMove = false;
+          }
         },
         error: (error) => {
           this.toastService.addToast({
