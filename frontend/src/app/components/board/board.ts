@@ -38,7 +38,6 @@ export class BoardComponent implements OnInit, AfterViewInit {
     this.filters$
   ]).pipe(
     map(([tasks, filters]) => {
-      console.log('Computing columns');
       // Clear new task animations whenever filters change
       this.newTaskIds.clear();
       return this.computeColumns(tasks, filters);
@@ -168,11 +167,8 @@ export class BoardComponent implements OnInit, AfterViewInit {
     }, {} as Record<string, Task[]>);
 
     const todoTasks = tasksByStatus['todo'] || [];
-    console.log('🚀 - todoTasks:', todoTasks);
     const inProgressTasks = tasksByStatus['in-progress'] || [];
-    console.log('🚀 - inProgressTasks:', inProgressTasks);
     const doneTasks = tasksByStatus['done'] || [];
-    console.log('🚀 - doneTasks:', doneTasks);
 
     return [
       {
@@ -686,7 +682,6 @@ export class BoardComponent implements OnInit, AfterViewInit {
   private generateUpdatedTask(tasks: Task[], taskId: number, newStatus: string, newIndex: number): Task | undefined {
     // Prevent rapid successive drag operations
     if (this.isProcessingMove) {
-      console.log('Early return due to isProcessingMove');
       return;
     }
 
@@ -830,13 +825,12 @@ export class BoardComponent implements OnInit, AfterViewInit {
 
           if (isProduction) {
           // TODO - uncomment below after local changes are working properly
-            console.log('Production: Applying server response with delay');
             setTimeout(() => {
               this.tasks$.next(response.allTasks);
               this.isProcessingMove = false;
             }, 50);
           } else {
-            console.log('Development: Applying server response immediately');
+            // console.log('Development: Applying server response immediately');
             // Update with all tasks from server to ensure correct ordering
             this.tasks$.next(response.allTasks);
             this.isProcessingMove = false;
